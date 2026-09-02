@@ -1,0 +1,308 @@
+.hospital-page {
+  width: 100%;
+}
+
+/* ================= HERO SECTION ================= */
+
+.hospital-hero {
+  padding: 80px 0 50px;
+  text-align: center;
+  background: linear-gradient(180deg,
+      rgba(0, 153, 255, 0.1) 0%,
+      transparent 100%);
+}
+
+.hospital-hero h1 {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  margin-bottom: 30px;
+  color: var(--blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  position: relative;
+}
+
+.connection-badge {
+  font-size: 0.4em;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-left: 15px;
+  vertical-align: middle;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.connection-badge.connected {
+  color: #00ff88;
+  border: 1px solid #00ff88;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+}
+
+.connection-badge.disconnected,
+.connection-badge.connecting {
+  color: #ff4d4d;
+  border: 1px solid #ff4d4d;
+}
+
+.hospital-hero p {
+  font-size: 18px;
+  color: var(--gray);
+}
+
+.last-update {
+  color: var(--blue);
+  font-weight: 600;
+  margin-left: 10px;
+  font-family: var(--font-mono);
+}
+
+/* 🔽 REDUCED ICON SIZE */
+.hospital-icon {
+  width: 42px;
+  height: auto;
+}
+
+/* 🔽 REDUCED HERO IMAGE SIZE */
+.hospital-illustration {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  margin: 35px auto 0;
+  display: block;
+  object-fit: contain;
+}
+
+/* ================= DASHBOARD ================= */
+
+.hospital-dashboard {
+  padding: 60px 0 100px;
+}
+
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 30px;
+}
+
+.patient-card,
+.resources-card,
+.prep-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  padding: 35px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.patient-card {
+  grid-column: 1 / 2;
+  grid-row: 1 / 3;
+}
+
+.alert-pulse {
+  border-color: var(--blue) !important;
+  box-shadow: 0 0 20px rgba(0, 153, 255, 0.4);
+  animation: pulse-blue 2s infinite;
+}
+
+@keyframes pulse-blue {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 153, 255, 0.4);
+  }
+
+  70% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 10px rgba(0, 153, 255, 0);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 153, 255, 0);
+  }
+}
+
+.patient-card h2,
+.resources-card h2,
+.prep-card h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 25px;
+  color: var(--blue);
+}
+
+/* ================= PATIENT INFO ================= */
+
+.patient-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.patient-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.patient-item.full {
+  grid-column: 1 / -1;
+}
+
+.label {
+  font-size: 13px;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--light);
+}
+
+.value.blood {
+  color: var(--red);
+  font-size: 24px;
+}
+
+.value.alert {
+  color: var(--amber);
+}
+
+/* ================= ETA ================= */
+
+.eta-item {
+  background: rgba(0, 255, 102, 0.1);
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 255, 102, 0.2);
+  margin-top: 15px;
+}
+
+.value.eta {
+  font-size: 32px;
+  color: var(--green);
+  font-weight: 700;
+}
+
+/* ================= RESOURCES ================= */
+
+.resources-list {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.resource-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.resource-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.resource-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.resource-count {
+  font-size: 14px;
+  color: var(--gray);
+  font-family: var(--font-mono);
+}
+
+.resource-bar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.resource-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--blue), var(--green));
+  transition: width 0.5s;
+}
+
+/* ================= CHECKLIST ================= */
+
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.check-item.done {
+  border-color: rgba(0, 255, 102, 0.3);
+}
+
+.check-item.pending {
+  opacity: 0.6;
+}
+
+.check-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.check-item.done .check-icon {
+  color: var(--green);
+}
+
+.check-item.pending .check-icon {
+  color: var(--amber);
+}
+
+.check-item span:last-child {
+  font-size: 15px;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 1024px) {
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .patient-card {
+    grid-column: 1 / 2;
+    grid-row: auto;
+  }
+
+  .patient-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .patient-item.full {
+    grid-column: 1 / 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .hospital-illustration {
+    max-width: 220px;
+    margin-top: 25px;
+  }
+
+  .hospital-icon {
+    width: 32px;
+  }
+}

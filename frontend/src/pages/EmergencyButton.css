@@ -1,0 +1,243 @@
+.emergency-page {
+  width: 100%;
+}
+
+.emergency-hero {
+  padding: 80px 0 50px;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(255, 0, 0, 0.15) 0%, transparent 100%);
+}
+
+.emergency-hero h1 {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  margin-bottom: 18px;
+  color: var(--red);
+}
+
+.emergency-hero p {
+  font-size: 18px;
+  color: var(--gray);
+}
+
+.emergency-demo {
+  padding: 60px 0 100px;
+}
+
+.demo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.form-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  padding: 35px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.form-card h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 25px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--light);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: var(--light);
+  font-family: var(--font-display);
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--red);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.emergency-btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--red);
+  color: var(--light);
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s;
+  box-shadow: 0 0 25px rgba(255, 0, 0, 0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.emergency-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 40px rgba(255, 0, 0, 0.5);
+}
+
+.btn-icon {
+  font-size: 22px;
+}
+
+.status-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.status-card,
+.map-card,
+.logs-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  padding: 25px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-card h3,
+.logs-card h4 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.status-items {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 14px;
+}
+
+.status-item span:first-child {
+  color: var(--gray);
+}
+
+.status-item .value {
+  font-weight: 600;
+  color: var(--light);
+}
+
+.status-item .value.eta {
+  color: var(--green);
+}
+
+.map-placeholder {
+  height: 300px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.map-marker {
+  position: absolute;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.map-marker.patient {
+  top: 20%;
+  left: 20%;
+  color: var(--red);
+}
+
+.map-marker.ambulance {
+  top: 50%;
+  left: 50%;
+  color: var(--amber);
+}
+
+.map-marker.hospital {
+  bottom: 20%;
+  right: 20%;
+  color: var(--blue);
+}
+
+.route-line {
+  position: absolute;
+  top: 25%;
+  left: 25%;
+  right: 25%;
+  bottom: 25%;
+  border: 2px dashed var(--red);
+  border-radius: 50%;
+  opacity: 0.3;
+}
+
+.logs {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.no-logs {
+  color: var(--gray);
+  font-size: 14px;
+  text-align: center;
+  padding: 20px;
+}
+
+.log-item {
+  display: flex;
+  gap: 15px;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.log-item .time {
+  color: var(--gray);
+  flex-shrink: 0;
+}
+
+.log-item .msg {
+  color: var(--light);
+}
+
+@media (max-width: 1024px) {
+  .demo-grid {
+    grid-template-columns: 1fr;
+  }
+}

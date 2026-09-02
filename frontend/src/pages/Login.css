@@ -1,0 +1,411 @@
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: url('../assets/images/hero.png') no-repeat center center fixed;
+    background-size: cover;
+    position: relative;
+    overflow: auto;
+    padding: 40px 20px;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: white;
+}
+
+.login-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.8) 100%);
+    backdrop-filter: blur(5px);
+    z-index: 1;
+}
+
+.login-container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 500px;
+    transition: max-width 0.4s ease;
+}
+
+.login-container:has(.register-mode) {
+    max-width: 800px;
+}
+
+.login-card {
+    background: #121212;
+    border: 1px solid #262626;
+    border-radius: 6px;
+    padding: 40px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    animation: slideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.4s ease;
+}
+
+.register-mode {
+    padding: 30px 40px;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.logo-icon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 15px rgba(255, 77, 77, 0.4));
+}
+
+.login-header h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #fff 0%, #5ee88f 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.login-header p {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+}
+
+.register-mode .form-grid {
+    grid-template-columns: 1fr 1fr;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+.error-message {
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 4px solid #ef4444;
+    color: #fca5a5;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 5px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    margin-left: 2px;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 14px;
+    font-size: 1rem;
+    opacity: 0.5;
+}
+
+.input-wrapper input,
+.input-wrapper select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    padding: 12px 12px 12px 42px;
+    color: white;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    appearance: none;
+}
+
+.input-wrapper select {
+    cursor: pointer;
+}
+
+.input-wrapper select option {
+    background: #1a1a1a;
+    color: white;
+}
+
+.input-wrapper input:focus,
+.input-wrapper select:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: #1f7a48;
+    box-shadow: 0 0 0 4px rgba(62, 242, 124, 0.12);
+}
+
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    margin-top: 5px;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.forgot-link {
+    color: #3ef27c;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.forgot-link:hover {
+    text-decoration: underline;
+}
+
+.login-btn {
+    margin-top: 5px;
+    background: linear-gradient(135deg, #1f7a48 0%, #3ef27c 130%);
+    border: none;
+    border-radius: 3px;
+    padding: 14px;
+    color: #06130a;
+    font-weight: 800;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    letter-spacing: 0.04em;
+    box-shadow: 0 8px 22px -6px rgba(62, 242, 124, 0.3);
+}
+
+.login-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+    box-shadow: 0 15px 28px -6px rgba(62, 242, 124, 0.4);
+}
+
+.login-footer {
+    margin-top: 25px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.toggle-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    margin-left: 5px;
+    padding: 0;
+    text-decoration: underline;
+}
+
+.toggle-btn:hover {
+    color: #5ee88f;
+}
+
+@media (max-width: 768px) {
+    .register-mode .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Spinner */
+.spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ---- role-based login ---- */
+
+.login-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 22px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    padding: 5px;
+}
+
+.login-tabs .tab {
+    flex: 1;
+    background: none;
+    border: none;
+    border-radius: 3px;
+    padding: 10px;
+    color: rgba(255, 255, 255, 0.55);
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.login-tabs .tab.on {
+    background: linear-gradient(135deg, #1f7a48 0%, #3ef27c 130%);
+    color: #06130a;
+}
+
+.role-picker {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 22px;
+}
+
+.role-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    padding: 12px 6px;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.role-card .role-icon {
+    font-size: 1.5rem;
+}
+
+.role-card .role-name {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.role-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(62, 242, 124, 0.6);
+}
+
+.role-card.on {
+    background: rgba(62, 242, 124, 0.12);
+    border-color: #3ef27c;
+    color: #fff;
+    box-shadow: 0 0 0 1px #3ef27c;
+}
+
+.demo-box {
+    margin-top: 18px;
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.demo-toggle {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 0;
+    font-family: inherit;
+}
+
+.demo-toggle b {
+    color: #5ee88f;
+}
+
+.demo-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.demo-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    padding: 7px 10px;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.78rem;
+    text-align: left;
+}
+
+.demo-row:hover {
+    background: rgba(62, 242, 124, 0.12);
+    border-color: #1f7a48;
+}
+
+.demo-user {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+}
+
+@media (max-width: 560px) {
+    .role-picker {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .demo-list {
+        grid-template-columns: 1fr;
+    }
+}

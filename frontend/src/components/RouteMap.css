@@ -1,0 +1,64 @@
+.routemap { position: relative; }
+
+.routemap-label {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.routemap-caption { font-size: 13px; color: #aeb8c4; }
+
+.routemap-warn {
+  font-size: 11px;
+  color: #ffd166;
+  background: rgba(255, 209, 102, 0.12);
+  border: 1px solid rgba(255, 209, 102, 0.4);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+.routemap-leaf {
+  height: 340px;
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #222;
+  background: #0d1626;
+  z-index: 0;
+}
+
+/* Interactive map internals — dark fading only, keep tiles readable */
+.routemap-leaf .leaflet-tile-pane { filter: brightness(0.95); }
+.routemap-leaf .leaflet-control-attribution { font-size: 10px; background: rgba(13, 22, 38, 0.7); color: #9fb0c3; }
+.routemap-leaf .leaflet-control-attribution a { color: #9fb0c3; }
+.routemap-leaf .leaflet-control-zoom a { color: #c6d2df; }
+
+.rm-leaf-icon { background: transparent; border: none; }
+.rm-leaf-icon svg {
+  filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.9));
+}
+
+.routemap-corridor { margin-left: 2px; }
+
+/* route-state chip overlay (bottom-left of the map) */
+.rm-route-state {
+  position: absolute;
+  left: 14px;
+  bottom: 26px;
+  z-index: 500;
+  font: 600 11px/1 var(--font-mono);
+  letter-spacing: 0.05em;
+  padding: 7px 11px;
+  border-radius: 4px;
+  border: 1px solid;
+  background: rgba(10, 14, 20, 0.85);
+  pointer-events: none;
+}
+.rs-to-patient { color: #5db8ff; border-color: #24537f; }
+.rs-to-hospital { color: #3ef27c; border-color: #1f7a48; }
+.rs-arrived { color: #ffd166; border-color: #7a5a1f; }
+.rs-rerouting { color: #ffc24b; border-color: #7a5a1f; }

@@ -1,0 +1,277 @@
+.traffic-page {
+  width: 100%;
+}
+
+.traffic-hero {
+  padding: 80px 0 50px;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(0, 255, 102, 0.1) 0%, transparent 100%);
+}
+
+.traffic-hero h1 {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+.traffic-hero p {
+  font-size: 18px;
+  color: var(--gray);
+}
+
+.traffic-dashboard {
+  padding: 60px 0 100px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.dashboard-header h2 {
+  font-size: 30px;
+  font-weight: 600;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.live-alert-badge {
+  padding: 10px 20px;
+  background: rgba(255, 0, 0, 0.2);
+  color: var(--red);
+  border: 1px solid var(--red);
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+}
+
+.demo-btn {
+  padding: 14px 28px;
+  background: var(--green);
+  color: var(--dark);
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.demo-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(0, 255, 102, 0.4);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.map-view {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  padding: 30px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.map-container {
+  height: 500px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ambulance-marker {
+  position: absolute;
+  top: 20%;
+  left: 20%;
+  padding: 10px 16px;
+  background: rgba(255, 0, 0, 0.9);
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 4px 15px rgba(255, 0, 0, 0.5);
+  animation: moveAmbulance 5s linear infinite;
+}
+
+@keyframes moveAmbulance {
+  0% { top: 20%; left: 20%; }
+  25% { top: 40%; left: 40%; }
+  50% { top: 60%; left: 60%; }
+  75% { top: 75%; left: 75%; }
+  100% { top: 20%; left: 20%; }
+}
+
+.signal-marker {
+  position: absolute;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.85);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.signal-1 { top: 25%; left: 25%; }
+.signal-2 { top: 45%; left: 45%; }
+.signal-3 { top: 65%; left: 65%; }
+.signal-4 { bottom: 15%; right: 15%; }
+
+.signal-light {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.signal-light.red {
+  background: var(--red);
+  box-shadow: 0 0 15px var(--red);
+}
+
+.signal-light.green {
+  background: var(--green);
+  box-shadow: 0 0 15px var(--green);
+}
+
+.signal-light.amber {
+  background: var(--amber);
+  box-shadow: 0 0 15px var(--amber);
+}
+
+.route-path {
+  position: absolute;
+  top: 25%;
+  left: 25%;
+  right: 20%;
+  bottom: 20%;
+  border: 3px dashed rgba(0, 255, 102, 0.3);
+  border-radius: 20%;
+  pointer-events: none;
+}
+
+.signals-list {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  padding: 30px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.signals-list h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 25px;
+}
+
+.signal-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px;
+  margin-bottom: 15px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s;
+}
+
+.signal-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.signal-info h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.signal-info p {
+  font-size: 13px;
+  color: var(--gray);
+}
+
+.status-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.status-badge.red {
+  background: rgba(255, 0, 0, 0.2);
+  color: var(--red);
+}
+
+.status-badge.green {
+  background: rgba(0, 255, 102, 0.2);
+  color: var(--green);
+}
+
+.status-badge.amber {
+  background: rgba(255, 184, 0, 0.2);
+  color: var(--amber);
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.stat-box {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  padding: 25px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.stat-box h3 {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--green);
+  margin-bottom: 8px;
+}
+
+.stat-box p {
+  font-size: 14px;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-start;
+  }
+}

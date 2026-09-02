@@ -1,0 +1,101 @@
+.amb-select { display: flex; flex-direction: column; gap: 6px; }
+.amb-select select {
+  background: #121212;
+  border: 1px solid #2f2f2f;
+  color: var(--light);
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+/* RBAC: account-bound unit (no dropdown, matched to the logged-in account) */
+.amb-fixed { min-width: 210px; }
+.amb-fixed-unit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #121212;
+  border: 1px solid #2f2f2f;
+  border-radius: 4px;
+  padding: 10px 14px;
+  font-size: 12px;
+}
+.amb-fixed-id {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 14px;
+  color: #929292;
+}
+
+.amb-body { padding: 32px 0 60px; display: flex; flex-direction: column; gap: 26px; }
+
+.amb-offers { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-top: 14px; }
+.amb-offer { display: flex; flex-direction: column; gap: 10px; }
+.amb-offer-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.amb-offer-actions { display: flex; gap: 10px; }
+.amb-offer-actions .btn { flex: 1; justify-content: center; }
+
+.amb-active-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+
+.amb-journey-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 900px) { .amb-journey-grid { grid-template-columns: 1fr; } }
+
+.amb-map-col { display: flex; flex-direction: column; gap: 12px; }
+.amb-controls { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.amb-journey { display: flex; flex-direction: column; gap: 14px; }
+.amb-step-row { display: flex; flex-direction: column; }
+.amb-step {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #1c1c1c;
+}
+.amb-step-dot {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  background: #1a1a1a;
+  border: 1px solid #3a3a3a;
+  flex-shrink: 0;
+}
+.amb-step.done .amb-step-dot { background: #0b3a1f; border-color: #1f7a48; color: #3ef27c; }
+.amb-step-body { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.amb-step-body .btn { font-size: 13px; padding: 9px 14px; }
+
+.amb-live {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  background: #0e1420;
+  border: 1px solid #22303c;
+  border-radius: 4px;
+  padding: 14px;
+}
+.amb-live > div { display: flex; flex-direction: column; gap: 4px; }
+.amb-live strong { font-size: 14px; }
+
+.amb-history {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid #1c1c1c;
+}
+
+/* Live GPS toggle */
+.amb-gps { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.amb-gps-btn { white-space: nowrap; }
+.amb-gps-readout { font-size: 11px; color: #929292; background: #0c1a24; border: 1px solid #92929233; border-radius: 3px; padding: 4px 8px; }
+.amb-gps-note { font-size: 11px; color: #ff8a50; }
+.amb-gps-hint { font-size: 12px; font-style: italic; }

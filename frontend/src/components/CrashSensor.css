@@ -1,0 +1,55 @@
+/* CrashSensorPanel — accelerometer crash detection (additive, togglable) */
+
+.cs-panel { border-color: #2a2a2a; }
+
+.cs-head { display: flex; align-items: center; gap: 12px; }
+.cs-icon { display: inline-flex; color: #ff8b8b; }
+.cs-title { display: flex; flex-direction: column; gap: 2px; text-align: left; flex: 1; }
+.cs-title strong { font-size: 15px; }
+.cs-toggle { white-space: nowrap; }
+
+.cs-note { font-size: 12.5px; line-height: 1.45; padding: 10px 12px; border-radius: 8px; margin-top: 12px; }
+.cs-warn { background: rgba(255, 187, 0, 0.08); border: 1px solid rgba(255, 187, 0, 0.35); color: #ffd166; }
+
+.cs-body { display: flex; gap: 18px; align-items: stretch; flex-wrap: wrap; margin-top: 12px; }
+.cs-readout {
+  flex: 1;
+  min-width: 220px;
+  background: #101010;
+  border: 1px solid #222;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cs-axis { display: flex; gap: 14px; font-size: 12px; }
+.cs-mag { display: flex; align-items: baseline; gap: 6px; }
+.cs-mag .mono { font-size: 22px; color: #ff8b8b; font-weight: 700; }
+.cs-bar { height: 6px; background: #222; border-radius: 999px; overflow: hidden; }
+.cs-bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #ffb800, #ff4545);
+  transition: width 0.08s linear;
+}
+.cs-delta { font-size: 11px; }
+
+.cs-threshold { display: flex; flex-direction: column; gap: 8px; min-width: 220px; max-width: 260px; justify-content: center; }
+.cs-threshold span { font-size: 12.5px; }
+.cs-threshold input[type="range"] { accent-color: #ffb800; }
+
+.cs-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+.cs-simulate { white-space: nowrap; }
+.cs-sim-note { font-size: 12px; max-width: 280px; }
+
+.cs-confidence {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  border-top: 1px dashed #2a2a2a;
+  padding-top: 10px;
+  margin-top: 6px;
+}
+.cs-confidence strong { font-size: 20px; color: #ff8b8b; font-family: var(--font-mono); }
+.cs-confidence .rr-label { font-size: 11px; }

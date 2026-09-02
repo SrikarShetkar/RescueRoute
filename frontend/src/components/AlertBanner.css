@@ -1,0 +1,21 @@
+.alert-banner {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border-radius: 4px;
+  padding: 14px 16px;
+  border: 1px solid;
+}
+.alert-banner > svg { flex-shrink: 0; margin-top: 1px; }
+.ab-body { display: flex; flex-direction: column; gap: 3px; }
+.ab-body strong { font-size: 15px; }
+.ab-body span { font-size: 13px; }
+
+.banner-reroute { border-color: #7a5a1f; background: rgba(255, 194, 75, 0.08); color: #ffd166; }
+.banner-reroute em { color: #ffd166; font-style: normal; font-weight: 600; }
+
+.banner-escalation { border-color: #ff4a3d; background: rgba(255, 74, 61, 0.1); color: #ff8b8b; box-shadow: 0 0 24px rgba(255, 74, 61, 0.12); animation: escpulse 1.6s ease-in-out infinite; }
+@keyframes escpulse { 0%,100% { box-shadow: 0 0 18px rgba(255,74,61,0.08); } 50% { box-shadow: 0 0 30px rgba(255,74,61,0.22); } }
+
+.banner-crash { border-color: #ff4a3d; background: rgba(255, 74, 61, 0.12); color: #ff8b8b; }
+.banner-crash strong { color: #ff6a5e; letter-spacing: 0.02em; }

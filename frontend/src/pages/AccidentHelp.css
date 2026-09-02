@@ -1,0 +1,181 @@
+.accident-page {
+  width: 100%;
+}
+
+.accident-hero {
+  padding: 80px 0 50px;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(147, 51, 234, 0.1) 0%, transparent 100%);
+}
+
+.accident-hero h1 {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  margin-bottom: 18px;
+  color: var(--purple);
+}
+
+.accident-hero p {
+  font-size: 18px;
+  color: var(--gray);
+}
+
+.accident-content {
+  padding: 60px 0 100px;
+}
+
+.scenarios-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 60px;
+}
+
+.scenario-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  padding: 40px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.scenario-card.conscious {
+  border-color: rgba(0, 153, 255, 0.3);
+}
+
+.scenario-card.unconscious {
+  border-color: rgba(147, 51, 234, 0.3);
+}
+
+.scenario-icon {
+  font-size: 60px;
+  margin-bottom: 20px;
+}
+
+.scenario-card h2 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.scenario-card.conscious h2 {
+  color: var(--blue);
+}
+
+.scenario-card.unconscious h2 {
+  color: var(--purple);
+}
+
+.scenario-card > p {
+  color: var(--gray);
+  margin-bottom: 35px;
+  font-size: 15px;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.step {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.step-num {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.conscious .step-num {
+  background: rgba(0, 153, 255, 0.2);
+  color: var(--blue);
+}
+
+.unconscious .step-num {
+  background: rgba(147, 51, 234, 0.2);
+  color: var(--purple);
+}
+
+.step h4 {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.step p {
+  font-size: 14px;
+  color: var(--gray);
+  line-height: 1.6;
+}
+
+.features-section {
+  background: rgba(255, 255, 255, 0.02);
+  padding: 60px 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.features-section h2 {
+  font-size: 32px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.features-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 30px;
+}
+
+.feature-box {
+  text-align: center;
+  padding: 30px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  transition: all 0.3s;
+}
+
+.feature-box:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-5px);
+}
+
+.feature-emoji {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 18px;
+}
+
+.feature-box h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.feature-box p {
+  color: var(--gray);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+@media (max-width: 1024px) {
+  .scenarios-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .features-row {
+    grid-template-columns: 1fr;
+  }
+}
