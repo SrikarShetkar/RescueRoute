@@ -35,6 +35,22 @@ function listEmergencies(req, res) {
 }
 
 /**
+ * GET /api/v1/emergencies/admission-requests?hospitalId=HOSP-005
+ * Emergencies where this hospital currently has a WAITING admission request
+ * (may not yet be the assigned destination — first-accept-wins).
+ */
+function listAdmissionRequests(req, res) {
+  try {
+    const { hospitalId } = req.query;
+    if (!hospitalId) return res.status(400).json({ error: "hospitalId is required" });
+    const emergencies = engine.listAdmissionRequests(hospitalId);
+    res.json({ count: emergencies.length, emergencies });
+  } catch (err) {
+    handleError(err, res);
+  }
+}
+
+/**
  * GET /api/v1/emergencies/:id
  */
 function getEmergency(req, res) {
@@ -259,6 +275,7 @@ function handleError(err, res) {
 module.exports = {
   createEmergency,
   listEmergencies,
+  listAdmissionRequests,
   getEmergency,
   applyAction,
   toggleSiren,

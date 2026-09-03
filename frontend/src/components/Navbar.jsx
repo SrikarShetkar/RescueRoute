@@ -62,6 +62,9 @@ const Navbar = () => {
                 <span className="nav-user" title={`Signed in as ${ROLE_META[user.role].label}`}>
                   <Icon name={ROLE_META[user.role].icon} size={15} /> {user.name || user.username}
                 </span>
+                <Link to="/profile" className="nav-link" onClick={() => setOpen(false)}>
+                  Profile
+                </Link>
                 <button className="btn-logout" onClick={handleLogout}>
                   Logout
                 </button>

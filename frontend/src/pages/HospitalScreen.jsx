@@ -43,6 +43,16 @@ export default function HospitalScreen() {
   const [resources, setResources] = useState(RESOURCES);
   const [error, setError] = useState(null);
   const [lastAlert, setLastAlert] = useState(null);
+  // Cases where this hospital has a WAITING admission request (may not yet be
+  // the assigned destination) — parallel request flow.
+  const [admissionRequests, setAdmissionRequests] = useState([]);
+  const [nowMs, setNowMs] = useState(Date.now());
+
+  // 60s cancellation-window countdown ticker.
+  useEffect(() => {
+    const t = setInterval(() => setNowMs(Date.now()), 500);
+    return () => clearInterval(t);
+  }, []);
 
   // Conditional-accept + reject-reason UI state.
   const [conditions, setConditions] = useState({
@@ -70,9 +80,26 @@ export default function HospitalScreen() {
 
   const myHospitalInfo = hospitals.find((h) => h.id === myHospital) || null;
   const incoming = allEmergencies
-    .filter((e) => e.hospitalId === myHospital && !["COMPLETED", "CANCELLED"].includes(e.status))
+    .filter((e) => !["COMPLETED", "CANCELLED"].includes(e.status) && (
+      e.hospitalId === myHospital ||
+      e.hospitalRequests?.some((r) => r.hospitalId === myHospital && (r.state === "waiting" || r.state === "accepted"))
+    ))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const current = incoming[0] || null;
+
+  // Cases awaiting this hospital's admission decision (WAITING requests),
+  // including ones where the ambulance is still travelling / another hospital
+  // is only tentatively assigned.
+  const pendingRequests = admissionRequests.filter(
+    (e) => e.emergencyId !== current?.emergencyId && e.hospitalRequests?.some((r) => r.hospitalId === myHospital && r.state === "waiting")
+  );
+
+  // 60s window to cancel/confirm after accepting — seconds remaining.
+  const acceptCountdown = (() => {
+    if (!current?.acceptanceWindowUntil) return null;
+    const ms = new Date(current.acceptanceWindowUntil).getTime() - nowMs;
+    return ms > 0 ? Math.ceil(ms / 1000) : 0;
+  })();
 
   useEffect(() => {
     setUiRole("hospital");
@@ -81,6 +108,9 @@ export default function HospitalScreen() {
     api.listHospitals().then(({ hospitals }) => setHospitals(hospitals));
     const refresh = () => {
       api.listEmergencies().then(({ emergencies }) => setAllEmergencies(emergencies)).catch((e) => setError(e.message));
+      api.listAdmissionRequests(myHospital)
+        .then(({ emergencies }) => setAdmissionRequests(emergencies))
+        .catch(() => setAdmissionRequests([]));
       api.statusOverview().then(setOverview).catch(() => {});
     };
     refresh();
@@ -91,14 +121,24 @@ export default function HospitalScreen() {
         if (exists) return list.map((e) => (e.emergencyId === data.emergencyId ? data : e));
         return [data, ...list];
       });
-      if (data.hospitalId === myHospital && ["HOSPITAL_OFFERED", "TO_HOSPITAL", "ARRIVED_AT_HOSPITAL", "IN_TREATMENT"].includes(data.status)) {
+      api.listAdmissionRequests(myHospital)
+        .then(({ emergencies }) => setAdmissionRequests(emergencies))
+        .catch(() => {});
+      if (data.hospitalId === myHospital && ["HOSPITAL_OFFERED", "HOSPITAL_ACCEPTED", "TO_HOSPITAL", "ARRIVED_AT_HOSPITAL", "IN_TREATMENT"].includes(data.status)) {
         setLastAlert(new Date());
+      }
+    });
+    const driverKey = socketService.on(socketService.EVENTS.DRIVER_STARTED, (data) => {
+      if (data.hospitalId === myHospital) {
+        setLastAlert(new Date());
+        setError(null);
       }
     });
 
     return () => {
       clearInterval(poll);
       socketService.off(EVENTS.EMERGENCY_UPDATE, key);
+      socketService.off(socketService.EVENTS.DRIVER_STARTED, driverKey);
       setUiRole("home");
     };
   }, [myHospital]);
@@ -198,6 +238,11 @@ export default function HospitalScreen() {
               </select>
             </label>
           )}
+          {myHospitalInfo?.emergencyContact && (
+            <a className="btn btn-ghost amb-call amb-call-station" href={`tel:${myHospitalInfo.emergencyContact}`}>
+              <Icon name="phone" size={13} /> CALL {myHospitalInfo.emergencyContact}
+            </a>
+          )}
         </div>
       </header>
 
@@ -239,6 +284,11 @@ export default function HospitalScreen() {
                 <div className="hosp-meta-item">
                   <span className="rr-label">Ambulance</span>
                   <strong>{current.ambulance ? `${current.ambulance.name} (${current.ambulance.vehicleNumber})` : "—"}</strong>
+                  {current.ambulance?.contact && (
+                    <a className="btn btn-ghost amb-call" href={`tel:${current.ambulance.contact}`}>
+                      <Icon name="phone" size={13} /> CALL {current.ambulance.contact}
+                    </a>
+                  )}
                 </div>
                 <div className="hosp-meta-item">
                   <span className="rr-label">On the way from</span>
@@ -259,18 +309,50 @@ export default function HospitalScreen() {
                   </button>
                 </div>
               )}
+              {current.status === "HOSPITAL_ACCEPTED" && (
+                <div className="hosp-actions">
+                  <span className="badge badge-live" style={{ alignSelf: "flex-start" }}>
+                    <Icon name="ok" size={11} /> You've accepted — the driver is choosing the destination
+                  </span>
+                  <span className="muted" style={{ fontSize: 13 }}>
+                    Ambulance crew will pick one of the accepting hospitals and start navigation.
+                    {acceptCountdown != null && (
+                      <span className="hosp-countdown"> · you may re-route within <strong>{acceptCountdown}s</strong> of accepting</span>
+                    )}
+                  </span>
+                  <button className="btn btn-ghost" onClick={() => respond(current.emergencyId, "cancel-accept")}>
+                    ✕ Cancel my acceptance — re-route patient
+                  </button>
+                </div>
+              )}
+              {current.status === "TO_HOSPITAL" && current.driverStarted && (
+                <div className="hosp-driver-notice">
+                  <Icon name="car" size={16} />
+                  <div>
+                    <strong>Ambulance on the way to you</strong>
+                    <span className="muted">The driver confirmed this destination and has started moving toward your hospital.</span>
+                  </div>
+                </div>
+              )}
               {current.status === "TO_HOSPITAL" && (
                 <div className="hosp-actions">
-                  <span className="muted" style={{ fontSize: 13 }}>Patient accepted — ambulance en route.</span>
+                  <span className="muted" style={{ fontSize: 13 }}>Patient accepted — ambulance en route.
+                    {acceptCountdown != null && (
+                      <span className="hosp-countdown"> · confirm within <strong>{acceptCountdown}s</strong> or admission locks</span>
+                    )}
+                  </span>
                   <button className="btn btn-ghost" onClick={() => { setRejecting((r) => !r); }}>
                     ✕ Cannot proceed — re-route patient
                   </button>
                 </div>
               )}
               {current.status === "ARRIVED_AT_HOSPITAL" && (
-                <button className="btn btn-green" onClick={() => respond(current.emergencyId, "handover")}>
-                  ✓ Begin treatment — admit patient
-                </button>
+                <div className="hosp-actions">
+                  <span className="muted" style={{ fontSize: 13 }}>Ambulance on-site. Confirm the patient has been received to hand over and free the unit.</span>
+                  <button className="btn btn-green" onClick={() => respond(current.emergencyId, "confirm-patient-received")}>
+                    ✓ Confirm patient received — begin treatment
+                  </button>
+                </div>
               )}
               {current.status === "IN_TREATMENT" && (
                 <div className="hosp-actions">
@@ -439,8 +521,40 @@ export default function HospitalScreen() {
           </div>
         )}
 
+        {pendingRequests.length > 0 && (
+          <section>
+            <div className="section-title" style={{ fontSize: 18 }}>
+              Incoming admission requests <DataLabel kind="simulated">PARALLEL</DataLabel>
+            </div>
+            <p className="section-sub">These cases requested admission in parallel — the first hospital to accept wins the patient.</p>
+            <div className="amb-offers">
+              {pendingRequests.map((e) => {
+                const req = e.hospitalRequests?.find((r) => r.hospitalId === myHospital);
+                const deadlineMs = req?.deadlineAt ? new Date(req.deadlineAt).getTime() - nowMs : null;
+                return (
+                  <div key={e.emergencyId} className="card amb-offer">
+                    <div className="amb-offer-top">
+                      <StatusBadge status={e.status} />
+                      <span className="mono muted">{e.emergencyId}</span>
+                    </div>
+                    <p><strong>{e.patient.condition || e.patient.severity}</strong></p>
+                    <p className="muted">{e.patient.name} · {e.patient.age || "?"}y · {e.patient.bloodGroup} — {e.location.label}</p>
+                    <p className="muted">
+                      <DataLabel kind="simulated">Request {deadlineMs != null && deadlineMs > 0 ? `expires in ${Math.ceil(deadlineMs / 1000)}s` : "expired"}</DataLabel>
+                      {e.etaToHospital && <> · ETA {e.etaToHospital}</>}
+                    </p>
+                    <div className="amb-offer-actions">
+                      <button className="btn btn-green" onClick={() => respond(e.emergencyId, "accept-patient")}>✓ Accept patient</button>
+                      <button className="btn btn-ghost" onClick={() => respond(e.emergencyId, "reject-patient", { rejectReason: "deficient-equipment" })}>✕ Decline</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         <section>
-          <div className="section-title" style={{ fontSize: 18 }}>Reassignment log (this station)</div>
           <div className="hosp-log card">
             {allEmergencies
               .filter((e) => e.timeline.some((t) => t.action === "hospital-reassign" || t.action === "hospital-offer"))

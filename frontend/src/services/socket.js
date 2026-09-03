@@ -22,6 +22,8 @@ export const EVENTS = {
   GREEN_CORRIDOR_ALERT: "green-corridor:alert",
   ESCALATION_TRIGGERED: "escalation:triggered",
   HOSPITAL_RESOURCES: "hospital:resources",
+  HOSPITAL_ACCEPTED: "hospital:accepted",
+  DRIVER_STARTED: "hospital:driver-started",
 };
 
 let socket = null;

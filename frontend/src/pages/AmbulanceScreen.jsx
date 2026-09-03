@@ -64,6 +64,9 @@ export default function AmbulanceScreen() {
   const current = active.find((e) => e.status !== "AMBULANCE_OFFERED") || null;
   const offers = active.filter((e) => e.status === "AMBULANCE_OFFERED");
 
+  const myAmbulanceObj = ambulances.find((a) => a.id === myAmbulance) || null;
+  const inTreatment = current?.status === "IN_TREATMENT";
+
   useEffect(() => {
     setUiRole("ambulance");
     socketService.registerRole("ambulance", { ambulanceId: myAmbulance });
@@ -201,7 +204,9 @@ export default function AmbulanceScreen() {
   const canPickHospital =
     !!current &&
     !escalating &&
-    ["PICKED_UP", "HOSPITAL_OFFERED", "TO_HOSPITAL"].includes(current.status);
+    ["PICKED_UP", "HOSPITAL_OFFERED", "HOSPITAL_ACCEPTED"].includes(current.status);
+  // How many hospitals have accepted and are awaiting the driver's choice.
+  const acceptedHospitals = (current?.hospitalRequests || []).filter((r) => r.state === "accepted");
 
   // Route map state — colour changes only when the corridor is locked in.
   let routeState = "to-patient";
@@ -211,6 +216,13 @@ export default function AmbulanceScreen() {
 
   const requestHospital = async (hospitalId) => {
     const e = await act(current.emergencyId, "request-hospital", { hospitalId });
+    return e;
+  };
+
+  // Driver service is awaiting an accepted hospital, acknowledges and starts
+  // navigation. This tells the chosen hospital the ambulance has started.
+  const navigateTo = async (hospitalId) => {
+    const e = await act(current.emergencyId, "navigate", { hospitalId });
     return e;
   };
 
@@ -295,6 +307,15 @@ export default function AmbulanceScreen() {
 
         {current && (
           <section className="amb-active">
+            {inTreatment && (
+              <div className="amb-treatment-banner">
+                <Icon name="check" size={18} />
+                <div>
+                  <strong>PATIENT IN TREATMENT</strong>
+                  <span className="muted">Handover complete at {current.hospital?.name || "hospital"}. Your unit is now <b>AVAILABLE</b> for the next emergency.</span>
+                </div>
+              </div>
+            )}
             <div className="amb-active-head">
               <div>
                 <div className="section-title" style={{ fontSize: 18 }}>Active case</div>
@@ -361,7 +382,7 @@ export default function AmbulanceScreen() {
                     { ok: ["AMBULANCE_ACCEPTED", "AT_PATIENT", "PICKED_UP", "HOSPITAL_OFFERED", "TO_HOSPITAL", "ARRIVED_AT_HOSPITAL"].includes(current.status), label: "Accepted case" },
                     { ok: ["AMBULANCE_ACCEPTED", "AT_PATIENT", "PICKED_UP", "HOSPITAL_OFFERED", "TO_HOSPITAL", "ARRIVED_AT_HOSPITAL"].includes(current.status), label: "En route to patient", action: canArrivePatient, btn: "Arrived at patient", act: "at-patient" },
                     { ok: ["AT_PATIENT", "PICKED_UP", "HOSPITAL_OFFERED", "TO_HOSPITAL", "ARRIVED_AT_HOSPITAL"].includes(current.status), label: "At patient", action: canPickup, btn: "Patient picked up", act: "pickup" },
-                    { ok: ["TO_HOSPITAL", "ARRIVED_AT_HOSPITAL"].includes(current.status), label: "Hospital accepted", hint: current.status === "HOSPITAL_OFFERED" || current.status === "PICKED_UP" ? "Waiting for hospital to accept…" : null },
+                    { ok: ["TO_HOSPITAL", "ARRIVED_AT_HOSPITAL"].includes(current.status), label: "Hospital accepted", hint: current.status === "HOSPITAL_ACCEPTED" ? "Hospital(s) accepted — tap Navigate on one to start travel." : current.status === "HOSPITAL_OFFERED" || current.status === "PICKED_UP" ? "Waiting for hospital to accept…" : null },
                     { ok: ["TO_HOSPITAL", "ARRIVED_AT_HOSPITAL"].includes(current.status), label: "En route to hospital", action: canArriveHospital, btn: "Arrived at hospital", act: "arrived-hospital" },
                     { ok: ["ARRIVED_AT_HOSPITAL"].includes(current.status), label: "Hospital hand-over", action: canHandover, btn: "Patient handed over", act: "handover" },
                   ].map((s, i) => (
@@ -387,13 +408,36 @@ export default function AmbulanceScreen() {
                 <div className="amb-live">
                   <div>
                     <span className="rr-label">Hospital</span>
-                    <strong>{current.hospital ? current.hospital.name : "not offered yet — patient will be assigned at pickup"}</strong>
-                    {current.etaToHospital && <small className="muted">ETA <DataLabel kind="simulated">{current.etaToHospital}</DataLabel></small>}
+                    {current.hospital ? (
+                      <>
+                        <strong>{current.hospital.name}</strong>
+                        {current.driverStarted && <small className="muted">You've started navigation — hospital notified</small>}
+                        {current.etaToHospital && <small className="muted">ETA <DataLabel kind="simulated">{current.etaToHospital}</DataLabel></small>}
+                        {current.hospital.emergencyContact && (
+                          <a className="btn btn-ghost amb-call" href={`tel:${current.hospital.emergencyContact}`}>
+                            <Icon name="phone" size={13} /> CALL {current.hospital.emergencyContact} · {current.hospital.name}
+                          </a>
+                        )}
+                      </>
+                    ) : acceptedHospitals.length > 0 ? (
+                      <>
+                        <strong>{acceptedHospitals.length} hospital(s) accepted — awaiting your Navigate</strong>
+                        {acceptedHospitals.map((r) => r.hospitalId).join(" · ")}
+                      </>
+                    ) : (
+                      <strong>not offered yet — patient will be assigned at pickup</strong>
+                    )}
                   </div>
                   <div>
                     <span className="rr-label">Siren</span>
                     <strong>{sirenActive ? "ACTIVE — alerting nearby drivers" : "off"}</strong>
                   </div>
+                  {current.driverStarted && (
+                    <div>
+                      <span className="rr-label">Your number (shared with hospital)</span>
+                      <strong>{myAmbulanceObj?.contact || current.ambulance?.contact || "—"}</strong>
+                    </div>
+                  )}
                 </div>
 
                 <GreenCorridorStatus corridor={current.greenCorridor} emergency={current} />
@@ -406,6 +450,8 @@ export default function AmbulanceScreen() {
               requiredEquipment={current.requiredEquipment || []}
               currentHospitalId={current.hospital?.id}
               onRequest={canPickHospital ? requestHospital : null}
+              hospitalRequests={current.hospitalRequests || []}
+              onNavigate={canPickHospital ? navigateTo : null}
               requestingId={null}
               lastRejectionDetail={lastRejection}
             />
@@ -413,7 +459,16 @@ export default function AmbulanceScreen() {
         )}
 
         {!current && offers.length === 0 && !loading && (
-          <div className="empty-state">No active cases. New requests will appear here with an alert sound.</div>
+          <div className="amb-available-banner">
+            <span className="amb-available-dot" />
+            <div>
+              <strong>AVAILABLE · Ready for dispatch</strong>
+              <span className="muted">
+                {myAmbulanceObj?.contact ? `Contact ${myAmbulanceObj.contact} · ` : ""}
+                Your unit ({myAmbulance}) is stand-by. New requests will appear here with an alert sound.
+              </span>
+            </div>
+          </div>
         )}
 
         {allEmergencies.some((e) => e.ambulanceId === myAmbulance && ["COMPLETED", "CANCELLED"].includes(e.status)) && (

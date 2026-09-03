@@ -3,18 +3,31 @@ const mongoose = require('mongoose');
 const UserSchema = new mongoose.Schema({
     username: {
         type: String,
-        required: true,
         unique: true,
+        sparse: true,
         trim: true
+    },
+    email: {
+        type: String,
+        unique: true,
+        sparse: true,
+        trim: true,
+        lowercase: true
+    },
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true
     },
     password: {
         type: String,
-        required: true
+        sparse: true
     },
     name: {
         type: String,
         required: true
     },
+    avatar: String,
     phone: String,
     bloodGroup: {
         type: String,
@@ -26,8 +39,12 @@ const UserSchema = new mongoose.Schema({
     allergies: String,
     role: {
         type: String,
-        enum: ['USER', 'ADMIN', 'HOSPITAL', 'AMBULANCE'],
-        default: 'USER'
+        enum: ['reporter', 'ambulance', 'hospital', 'dispatch', 'driver', 'USER', 'ADMIN', 'HOSPITAL_ROLE', 'AMBULANCE_ROLE'],
+        default: null
+    },
+    roleSelectionComplete: {
+        type: Boolean,
+        default: false
     },
     createdAt: {
         type: Date,

@@ -73,7 +73,11 @@ function initSocket(server) {
     socket.on("ambulance:move", (data) => {
       const ambulanceId = socket.data.ambulanceId || data.ambulanceId;
       if (!ambulanceId) return;
-      engine.moveAmbulance({ ambulanceId, lat: data.lat, lng: data.lng });
+      try {
+        engine.moveAmbulance({ ambulanceId, lat: data.lat, lng: data.lng });
+      } catch (err) {
+        socket.emit("error:event", { message: err.message });
+      }
     });
 
     socket.on("ambulance:siren", (data) => {
@@ -125,6 +129,17 @@ function initSocket(server) {
   // A hospital rejected a patient → every dashboard reacts in its own way.
   bus.on("hospital:rejected", (payload) => {
     io.emit("hospital:rejected", payload);
+  });
+
+  // A hospital accepted the patient (one of possibly several accepted).
+  bus.on("hospital:accepted", (payload) => {
+    io.emit("hospital:accepted", payload);
+  });
+
+  // A hospital accepted the patient (one of possibly several accepted).
+  bus.on("hospital:driver-started", (payload) => {
+    io.emit("hospital:driver-started", payload);
+    io.to(`role-hospital-${payload.hospitalId}`).emit("ambulance:on-the-way", payload);
   });
 
   // Recommendation set changed (pickup, rejection reroute, override).

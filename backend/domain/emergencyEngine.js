@@ -40,6 +40,7 @@ const STATUS = {
   AT_PATIENT: "AT_PATIENT",
   PICKED_UP: "PICKED_UP",
   HOSPITAL_OFFERED: "HOSPITAL_OFFERED",
+  HOSPITAL_ACCEPTED: "HOSPITAL_ACCEPTED",
   TO_HOSPITAL: "TO_HOSPITAL",
   ARRIVED_AT_HOSPITAL: "ARRIVED_AT_HOSPITAL",
   IN_TREATMENT: "IN_TREATMENT",
@@ -112,21 +113,50 @@ const TRANSITIONS = {
     requestHospital: true,
   },
   "accept-patient": {
-    from: [STATUS.HOSPITAL_OFFERED, STATUS.TO_HOSPITAL],
+    from: [STATUS.HOSPITAL_OFFERED, STATUS.HOSPITAL_ACCEPTED],
     roles: [ROLES.HOSPITAL],
     label: "Hospital accepted the patient",
     hospitalResponse: "accept",
-    to: STATUS.TO_HOSPITAL,
+    acceptPatient: true,
+    to: STATUS.HOSPITAL_ACCEPTED,
   },
   "conditional-accept": {
-    from: [STATUS.HOSPITAL_OFFERED],
+    from: [STATUS.HOSPITAL_OFFERED, STATUS.HOSPITAL_ACCEPTED],
     roles: [ROLES.HOSPITAL],
     label: "Hospital conditionally accepted the patient",
     hospitalResponse: "conditional-accept",
+    acceptPatient: true,
+    to: STATUS.HOSPITAL_ACCEPTED,
+  },
+  "navigate": {
+    from: [STATUS.HOSPITAL_OFFERED, STATUS.HOSPITAL_ACCEPTED],
+    roles: [ROLES.AMBULANCE, ROLES.DISPATCH],
+    label: "Driver selected the hospital and started navigation",
+    navigate: true,
     to: STATUS.TO_HOSPITAL,
   },
+  "cancel-accept": {
+    from: [STATUS.HOSPITAL_ACCEPTED],
+    roles: [ROLES.HOSPITAL, ROLES.DISPATCH],
+    label: "Hospital cancelled its acceptance — rerouting patient",
+    cancelAccept: true,
+  },
+  "confirm-patient-received": {
+    from: [STATUS.ARRIVED_AT_HOSPITAL],
+    roles: [ROLES.HOSPITAL, ROLES.DISPATCH],
+    label: "Hospital confirmed patient received — treatment begins",
+    to: STATUS.IN_TREATMENT,
+    handover: true,
+    endCorridor: true,
+  },
+  "send-hospital-requests": {
+    from: [STATUS.PICKED_UP, STATUS.HOSPITAL_OFFERED, STATUS.HOSPITAL_ACCEPTED, STATUS.TO_HOSPITAL],
+    roles: [ROLES.AMBULANCE, ROLES.DISPATCH],
+    label: "Admission requests sent to suitable hospitals in parallel",
+    sendHospitalRequests: true,
+  },
   "reject-patient": {
-    from: [STATUS.HOSPITAL_OFFERED, STATUS.TO_HOSPITAL],
+    from: [STATUS.HOSPITAL_OFFERED, STATUS.HOSPITAL_ACCEPTED],
     roles: [ROLES.HOSPITAL],
     label: "Hospital declined — rerouting patient",
     hospitalResponse: "reject",
@@ -238,6 +268,7 @@ const TRANSITIONS = {
   escalate: {
     from: [
       STATUS.HOSPITAL_OFFERED,
+      STATUS.HOSPITAL_ACCEPTED,
       STATUS.PICKED_UP,
       STATUS.TO_HOSPITAL,
       STATUS.CONTROL_ROOM_ESCALATION,
@@ -247,7 +278,7 @@ const TRANSITIONS = {
     to: STATUS.CONTROL_ROOM_ESCALATION,
   },
   "dispatch-override": {
-    from: [STATUS.CONTROL_ROOM_ESCALATION, STATUS.HOSPITAL_OFFERED, STATUS.PICKED_UP],
+    from: [STATUS.CONTROL_ROOM_ESCALATION, STATUS.HOSPITAL_OFFERED, STATUS.HOSPITAL_ACCEPTED, STATUS.PICKED_UP],
     roles: [ROLES.DISPATCH],
     label: "Control room selected a hospital",
     dispatchOverride: true,
@@ -274,6 +305,7 @@ const ambulances = [
   {
     id: "AMB-001",
     driver: "Rajesh Kumar",
+    contact: "+91 90000 01001",
     vehicleNumber: "TS-09-AB-1234",
     location: { lat: 17.385, lng: 78.4867 },
     status: "AVAILABLE",
@@ -283,6 +315,7 @@ const ambulances = [
   {
     id: "AMB-002",
     driver: "Priya Sharma",
+    contact: "+91 90000 01002",
     vehicleNumber: "TS-09-CD-5678",
     location: { lat: 17.44, lng: 78.35 },
     status: "AVAILABLE",
@@ -291,6 +324,7 @@ const ambulances = [
   {
     id: "AMB-003",
     driver: "Imran Khan",
+    contact: "+91 90000 01003",
     vehicleNumber: "TS-09-EF-9101",
     location: { lat: 17.4034, lng: 78.4392 },
     status: "AVAILABLE",
@@ -302,6 +336,7 @@ const hospitals = [
   {
     id: "HOSP-001",
     name: "Apollo Emergency Center",
+    emergencyContact: "+91 90000 02001",
     location: { lat: 17.4326, lng: 78.4071 },
     availableBeds: 15,
     dedicatedBeds: 6,
@@ -319,6 +354,7 @@ const hospitals = [
   {
     id: "HOSP-002",
     name: "CityCare Hospital",
+    emergencyContact: "+91 90000 02002",
     location: { lat: 17.4239, lng: 78.4738 },
     availableBeds: 8,
     dedicatedBeds: 3,
@@ -336,6 +372,7 @@ const hospitals = [
   {
     id: "HOSP-003",
     name: "Gandhi General Hospital",
+    emergencyContact: "+91 90000 02003",
     location: { lat: 17.4484, lng: 78.4954 },
     availableBeds: 20,
     dedicatedBeds: 10,
@@ -353,6 +390,7 @@ const hospitals = [
   {
     id: "HOSP-004",
     name: "Sunrise Neuro Center",
+    emergencyContact: "+91 90000 02004",
     location: { lat: 17.3951, lng: 78.4405 },
     availableBeds: 5,
     dedicatedBeds: 3,
@@ -370,6 +408,7 @@ const hospitals = [
   {
     id: "HOSP-005",
     name: "Greenfield Multispecialty",
+    emergencyContact: "+91 90000 02005",
     location: { lat: 17.47, lng: 78.37 },
     availableBeds: 18,
     dedicatedBeds: 8,
@@ -426,6 +465,13 @@ const NEARLY_FULL_PENALTY = 4;
 let CRASH_COUNTDOWN_MS = config.CRASH_DETECTION.countdownSeconds * 1000;
 let AUTO_CANCEL_MS = 15000;
 
+/* ---- configurable hospital request / acceptance windows ---- */
+let HOSPITAL_REQUEST_MS = config.TIMEOUTS.hospitalRequestMs;
+let ACCEPTANCE_WINDOW_MS = config.TIMEOUTS.acceptanceWindowMs;
+let HOSPITAL_REQ_MIN = config.CRASH_DETECTION.countdownSeconds; // unused, kept for clarity
+let FAKE_CANCEL_THRESHOLD = config.TIMEOUTS.cancelHistoryThreshold;
+let FAKE_MIN_REPORT_INTERVAL_MS = config.TIMEOUTS.minReportIntervalMs;
+
 /* ------------------------------------------------------------------ */
 /* In-memory state                                                    */
 /* ------------------------------------------------------------------ */
@@ -438,7 +484,9 @@ const state = {
   serial: 1,
   autoCancelTimers: new Map(),
   crashTimers: new Map(),
+  hospitalTimers: new Map(),
   falseAlarms: new Map(),
+  reporterStats: new Map(),
 };
 
 /* ------------------------------------------------------------------ */
@@ -526,6 +574,15 @@ function soundPlan(action, em) {
     case "handover":
       return [{ ...base, sound: SOUND.CONFIRM, forRoles: [ROLES.REPORTER, ROLES.DISPATCH, ROLES.HOSPITAL], reason: "Patient handed over — admitted for treatment" }];
 
+    case "confirm-patient-received":
+      return [{ ...base, sound: SOUND.CONFIRM, forRoles: [ROLES.REPORTER, ROLES.DISPATCH, ROLES.AMBULANCE], reason: "Hospital confirmed patient received" }];
+
+    case "send-hospital-requests":
+      return [{ ...base, sound: SOUND.CONFIRM, forRoles: [ROLES.AMBULANCE, ROLES.DISPATCH, ROLES.HOSPITAL], reason: "Admission requests sent to suitable hospitals" }];
+
+    case "cancel-accept":
+      return [{ ...base, sound: SOUND.ATTENTION, forRoles: [ROLES.AMBULANCE, ROLES.DISPATCH, ROLES.HOSPITAL], reason: "Hospital cancelled acceptance — rerouting patient" }];
+
     case "discharge":
       return [{ ...base, sound: SOUND.CONFIRM, forRoles: ["all"], reason: "Patient discharged — case fully resolved" }];
 
@@ -605,6 +662,7 @@ function assignAmbulance(em, opts = {}) {
   em.ambulance = {
     id: ambulance.id,
     name: ambulance.driver,
+    contact: ambulance.contact || null,
     vehicleNumber: ambulance.vehicleNumber,
     type: ambulance.type,
     liveLocation: { ...ambulance.location },
@@ -646,6 +704,7 @@ function assignHospital(em) {
   em.hospital = {
     id: hospital.id,
     name: hospital.name,
+    emergencyContact: hospital.emergencyContact || null,
     specialties: hospital.specialties,
     specialists: hospital.specialists,
     availableBeds: hospital.availableBeds,
@@ -666,12 +725,14 @@ function assignHospital(em) {
   return true;
 }
 
-function recordHospitalRequest(em, hospitalId, recommendation, condition) {
+function recordHospitalRequest(em, hospitalId, recommendation, condition, opts = {}) {
   const req = {
     hospitalId,
     requestedAt: new Date().toISOString(),
     respondedAt: null,
     response: null,
+    state: opts.state || "waiting", // waiting | accepted | rejected | expired | cancelled
+    deadlineAt: opts.deadlineAt || null,
     conditions: condition || null,
     score: recommendation ? recommendation.score : null,
     scoreBreakdown: recommendation ? recommendation.scoreBreakdown : null,
@@ -815,12 +876,28 @@ function createEmergency({ kind, reporter, patient, location, confidence }) {
     requiredEquipment: [],
     recommendation: null,
     greenCorridor: null,
+    driverStarted: false,
     crashConfidence: isCrash ? confidence ?? 80 : null,
     timeline: [],
     sirenOn: false,
+    riskScore: 0,
+    reportFlags: [],
   };
 
   state.emergencies.set(emergencyId, em);
+
+  /* ---- fake-case mitigation: per-account risk score (fed by report history) ---- */
+  em.riskScore = computeRiskScore(em);
+  if (em.riskScore >= 40) {
+    em.reportFlags.push("Repeated cancellation history");
+  }
+  if (em.riskScore >= 60) {
+    em.reportFlags.push("Suspicious automated behavior");
+  }
+  trackReporter(em);
+  if (em.reportFlags.length) {
+    bus.emit("case:flagged", { emergencyId, caseRef: em.caseRef, flags: em.reportFlags, riskScore: em.riskScore, emergency: snapshot(em) });
+  }
 
   if (isCrash) {
     em.status = STATUS.POTENTIAL_CRASH;
@@ -870,8 +947,17 @@ function applyAction(emergencyId, action, opts = {}) {
     throw Object.assign(new Error("This ambulance is not assigned to the emergency"), { code: "FORBIDDEN" });
   }
 
+  // A hospital acting on a case must either be the assigned destination OR have
+  // a pending (WAITING) admission request for it (required for parallel
+  // admission requests where any of the requested hospitals can become the
+  // destination by being the first to accept).
   if (rule.roles.includes(ROLES.HOSPITAL) && opts.hospitalId && opts.hospitalId !== em.hospitalId) {
-    throw Object.assign(new Error("This hospital is not the assigned destination"), { code: "FORBIDDEN" });
+    const pending = (em.hospitalRequests || []).some(
+      (r) => r.hospitalId === opts.hospitalId && (r.state === "waiting" || r.state === "accepted")
+    );
+    if (!pending) {
+      throw Object.assign(new Error("This hospital is not the assigned destination or a pending admission request was not found"), { code: "FORBIDDEN" });
+    }
   }
 
   // ---------- hospital request validation ----------
@@ -888,7 +974,7 @@ function applyAction(emergencyId, action, opts = {}) {
     em.hospital = hospitalSnapshotOf(h);
     em.etaToHospital = calculateETA(rec.distance);
     em.recommendation = rec;
-    if (em.status !== STATUS.TO_HOSPITAL) em.status = STATUS.HOSPITAL_OFFERED;
+    if (em.status !== STATUS.TO_HOSPITAL && em.status !== STATUS.HOSPITAL_ACCEPTED) em.status = STATUS.HOSPITAL_OFFERED;
     pushTimeline(em, opts.role, "hospital-request", `Admission requested at ${h.name} by authorized operator`, {}, { allowDuplicate: true });
   }
 
@@ -913,9 +999,24 @@ function applyAction(emergencyId, action, opts = {}) {
   const previousHospitalId = em.hospitalId;
   const previousAmbulanceId = em.ambulanceId;
 
+  // Validate the driver's navigate target BEFORE any status mutation so a failed
+  // navigation cannot leave the case half-transitioned.
+  if (rule.navigate) {
+    if (!opts.hospitalId) {
+      throw Object.assign(new Error("A hospitalId is required to start navigation"), { code: "BAD_REQUEST" });
+    }
+    const hasAccepted = (em.hospitalRequests || []).some(
+      (r) => r.hospitalId === opts.hospitalId && r.state === "accepted"
+    );
+    if (!hasAccepted) {
+      throw Object.assign(new Error("Cannot navigate to a hospital that has not accepted the patient"), { code: "FORBIDDEN" });
+    }
+  }
+
   if (rule.to) {
     em.status = rule.to;
   }
+  if (rule.handover) em.handover = true;
 
   em.updatedAt = new Date().toISOString();
   pushTimeline(em, opts.role, action, rule.label, { actor: opts.actor, category: categoryFor(action) });
@@ -958,13 +1059,105 @@ function applyAction(emergencyId, action, opts = {}) {
   }
 
   if (rule.hospitalResponse) {
-    const req = (em.hospitalRequests || []).slice(-1)[0];
+    const req = (em.hospitalRequests || []).find((r) => r.hospitalId === opts.hospitalId);
     if (req) {
       req.response = rule.hospitalResponse;
+      req.state = rule.hospitalResponse === "accept" || rule.hospitalResponse === "conditional-accept"
+        ? "accepted" : "rejected";
       req.respondedAt = new Date().toISOString();
       if (action === "conditional-accept") req.conditions = opts.conditions;
       if (action === "reject-patient") req.rejectReason = opts.rejectReason;
     }
+  }
+
+  /* ---- MULTI-HOSPITAL ACCEPT (driver picks via navigate) ----
+     Any requested hospital may accept and REMAIN in "accepted" state. Several
+     hospitals can be accepted at the same time; the DRIVER decides which becomes
+     the final destination by tapping Navigate on one of them. Until then the case
+     sits in HOSPITAL_ACCEPTED awaiting the driver's acknowledgement. */
+  if (rule.acceptPatient) {
+    const req = (em.hospitalRequests || []).find((r) => r.hospitalId === opts.hospitalId);
+    if (req) req.state = "accepted";
+    em.hospitalId = null;
+    em.hospital = null;
+    em.etaToHospital = null;
+    em.admissionLocked = false;
+    em.acceptanceWindowUntil = new Date(Date.now() + ACCEPTANCE_WINDOW_MS).toISOString();
+    clearHospitalRequestTimer(emergencyId);
+    bus.emit("hospital:accepted", { emergencyId: em.emergencyId, hospitalId: opts.hospitalId, emergency: snapshot(em) });
+    bus.emit("recommendations:updated", { emergencyId: em.emergencyId, emergency: snapshot(em) });
+  }
+
+  /* ---- DRIVER NAVIGATE: locks a chosen accepted hospital + starts move ----
+     The driver acknowledges an accepted hospital and starts navigation. This is
+     the single moment that turns a set of accepted hospitals into ONE destination
+     and notifies that hospital that the ambulance has started its journey. */
+  if (rule.navigate) {
+    const rec = (em.hospitalRecommendations || []).find((r) => r.hospital.id === opts.hospitalId);
+    em.hospitalId = opts.hospitalId;
+    em.hospital = hospitalSnapshotOf(state.hospitals.find((x) => x.id === opts.hospitalId));
+    em.etaToHospital = rec ? calculateETA(rec.distance)
+      : calculateETA(calculateDistance(em.location.lat, em.location.lng, em.hospital.liveLocation.lat, em.hospital.liveLocation.lng));
+    em.recommendation = rec;
+    em.driverStarted = true;
+    em.admissionLocked = true;
+    em.acceptanceWindowUntil = null;
+    // Cancel the accepts we did NOT choose so every other hospital sees it is off.
+    (em.hospitalRequests || []).forEach((r) => {
+      if (r.hospitalId !== opts.hospitalId && r.state === "accepted") {
+        r.state = "cancelled";
+        r.respondedAt = new Date().toISOString();
+      }
+    });
+    clearHospitalRequestTimer(emergencyId);
+    activateGreenCorridor(em);
+    pushTimeline(em, opts.role, "driver-start", `Driver started navigation to ${em.hospital.name}`, { actor: opts.actor }, { allowDuplicate: true });
+    bus.emit("hospital:driver-started", { emergencyId: em.emergencyId, hospitalId: em.hospitalId, ambulanceId: em.ambulanceId, emergency: snapshot(em) });
+  }
+
+  /* ---- 60s cancellation window (1 min from accepting): reroute ---- */
+  if (rule.cancelAccept) {
+    if (em.admissionLocked) {
+      throw Object.assign(new Error("Admission is locked — only control room override can reroute"), { code: "FORBIDDEN" });
+    }
+    if (em.acceptanceWindowUntil && Date.now() > new Date(em.acceptanceWindowUntil).getTime()) {
+      em.admissionLocked = true;
+      throw Object.assign(new Error("Confirmation window has expired — admission locked"), { code: "INVALID_STATE", currentStatus: em.status });
+    }
+    const cancellingId = opts.hospitalId || previousHospitalId;
+    const req = (em.hospitalRequests || []).find((r) => r.hospitalId === cancellingId);
+    if (req) {
+      req.state = "cancelled";
+      req.respondedAt = new Date().toISOString();
+    }
+    em.acceptanceWindowUntil = null;
+    handleReroute(em, cancellingId, { reason: "CANCELLED_WITHIN_WINDOW" });
+    bus.emit("hospital:rejected", { emergencyId: em.emergencyId, hospitalId: cancellingId, reason: "CANCELLED_WITHIN_WINDOW", emergency: snapshot(em) });
+    bus.emit("recommendations:updated", { emergencyId: em.emergencyId, emergency: snapshot(em) });
+  }
+
+  /* ---- PARALLEL admission requests (WAITING) to top suitable hospitals ---- */
+  if (rule.sendHospitalRequests) {
+    const eligible = (em.hospitalRecommendations || [])
+      .filter((r) => r.eligible && !(em.rejectedHospitalIds || []).includes(r.hospital.id))
+      .slice(0, 3);
+    const deadlineAt = new Date(Date.now() + HOSPITAL_REQUEST_MS).toISOString();
+    eligible.forEach((rec, idx) => {
+      const existing = (em.hospitalRequests || []).find((r) => r.hospitalId === rec.hospital.id && r.state === "waiting");
+      if (existing) return;
+      const req = recordHospitalRequest(em, rec.hospital.id, rec, null, { state: "waiting", deadlineAt });
+      if (idx === 0) {
+        // First eligible hospital becomes the tentative destination while requests wait.
+        em.hospitalId = rec.hospital.id;
+        em.hospital = hospitalSnapshotOf(state.hospitals.find((x) => x.id === rec.hospital.id));
+        em.etaToHospital = calculateETA(rec.distance);
+        em.recommendation = rec;
+      }
+    });
+    if (em.status !== STATUS.TO_HOSPITAL && em.status !== STATUS.HOSPITAL_ACCEPTED) em.status = STATUS.HOSPITAL_OFFERED;
+    scheduleHospitalRequestTimeout(em);
+    pushTimeline(em, opts.role, "hospital-request",
+      `Admission requests sent to ${eligible.length} suitable hospitals — awaiting acceptance`, {}, { allowDuplicate: true });
   }
 
   if (rule.reassignHospital) {
@@ -1026,12 +1219,17 @@ function applyAction(emergencyId, action, opts = {}) {
     bus.emit("hospital:resources", { hospitalId: h.id, hospital: h, at: new Date().toISOString() });
   }
 
-  /* ---- green corridor on hospital accept / conditional accept ---- */
-  if ((action === "accept-patient" || action === "conditional-accept") && em.status === STATUS.TO_HOSPITAL) {
-    activateGreenCorridor(em);
-  }
+  /* ---- green corridor activates when the DRIVER starts navigation ---- */
 
   if (action === "false-alarm") logFalseAlarm(em);
+
+  // Repeated cancellations feed the fake-case risk score (advisory only).
+  if ((em.status === STATUS.CANCELLED) && !["false-alarm"].includes(action)) {
+    const key = reporterAccountKey(em);
+    const r = state.reporterStats.get(key) || { cancels: 0 };
+    r.cancels = (r.cancels || 0) + 1;
+    state.reporterStats.set(key, r);
+  }
 
   if (!isUnconfirmed(em) || ["COMPLETED", "CANCELLED", "USER_CONFIRMED_SAFE"].includes(em.status)) {
     clearAutoCancelTimer(emergencyId);
@@ -1070,6 +1268,13 @@ function applyAction(emergencyId, action, opts = {}) {
     endGreenCorridor(em);
   }
 
+  /* Hospital request timeout no longer relevant once the patient has a confirmed
+     destination / is in treatment / case is terminal. */
+  if (em.status === STATUS.TO_HOSPITAL || em.status === STATUS.ARRIVED_AT_HOSPITAL || em.status === STATUS.IN_TREATMENT
+      || ["COMPLETED", "CANCELLED", "USER_CONFIRMED_SAFE"].includes(em.status)) {
+    clearHospitalRequestTimer(emergencyId);
+  }
+
   publish(em);
   bus.emit("sound:event", { sounds: soundPlan(action, em), emergency: snapshot(em) });
   return snapshot(em);
@@ -1077,7 +1282,7 @@ function applyAction(emergencyId, action, opts = {}) {
 
 function categoryFor(action) {
   if (["crash-detect", "crash-confirm-safe", "crash-confirm-emergency", "crash-confirmed"].includes(action)) return "crash";
-  if (["accept-patient", "conditional-accept", "reject-patient", "update-resources", "hospital-reject", "hospital-offer", "discharge", "handover"].includes(action)) return "hospital";
+  if (["accept-patient", "conditional-accept", "reject-patient", "update-resources", "hospital-reject", "hospital-offer", "discharge", "handover", "cancel-accept", "confirm-patient-received", "send-hospital-requests", "hospital-req-expired"].includes(action)) return "hospital";
   if (["accept", "reject", "at-patient", "pickup", "arrived-hospital", "request-hospital"].includes(action)) return "ambulance";
   if (["escalate", "dispatch-override", "expand-radius", "false-alarm", "cancel", "complete"].includes(action)) return "control";
   if (["create", "hospital-reassign", "reassign", "corridor-activate", "corridor-end", "no-hospital", "radius-expand", "resources-updated", "auto-cancel", "siren-on", "siren-off", "hospital-rated"].includes(action)) return "system";
@@ -1089,6 +1294,7 @@ function hospitalSnapshotOf(h) {
   return {
     id: h.id,
     name: h.name,
+    emergencyContact: h.emergencyContact || null,
     specialties: h.specialties,
     specialists: h.specialists,
     availableBeds: h.availableBeds,
@@ -1201,6 +1407,21 @@ function listEmergencies(opts = {}) {
 function getEmergency(emergencyId) {
   const em = state.emergencies.get(emergencyId);
   return em ? snapshot(em) : null;
+}
+
+/**
+ * Emergencies for which `hospitalId` currently has a WAITING admission request
+ * — including cases where it is not yet the tentative destination (used by the
+ * hospital UI to surface parallel admission requests and let it accept, which
+ * flips it to the confirmed destination via first-accept-wins).
+ */
+function listAdmissionRequests(hospitalId) {
+  const list = [...state.emergencies.values()].filter(
+    (e) =>
+      !["COMPLETED", "CANCELLED", "USER_CONFIRMED_SAFE"].includes(e.status) &&
+      (e.hospitalRequests || []).some((r) => r.hospitalId === hospitalId && r.state === "waiting")
+  );
+  return list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map(snapshot);
 }
 
 function getRecommendations(emergencyId) {
@@ -1409,8 +1630,101 @@ function clearCrashTimer(emergencyId) {
   }
 }
 
+/* ---------------- hospital request timeout (WAITING → EXPIRED) ---------------- */
+
+function scheduleHospitalRequestTimeout(em) {
+  clearHospitalRequestTimer(em.emergencyId);
+  const pending = (em.hospitalRequests || []).some((r) => r.state === "waiting");
+  if (!pending) return;
+  state.hospitalTimers.set(
+    em.emergencyId,
+    setTimeout(() => expireHospitalRequests(em.emergencyId), HOSPITAL_REQUEST_MS)
+  );
+}
+
+function clearHospitalRequestTimer(emergencyId) {
+  const t = state.hospitalTimers.get(emergencyId);
+  if (t) {
+    clearTimeout(t);
+    state.hospitalTimers.delete(emergencyId);
+  }
+}
+
+function expireHospitalRequests(emergencyId) {
+  state.hospitalTimers.delete(emergencyId);
+  const em = state.emergencies.get(emergencyId);
+  if (!em) return;
+  let expiredAny = false;
+  (em.hospitalRequests || []).forEach((r) => {
+    if (r.state === "waiting") {
+      r.state = "expired";
+      r.respondedAt = new Date().toISOString();
+      expiredAny = true;
+    }
+  });
+  if (!expiredAny) return;
+
+  const stillWaitingOrAccepted = (em.hospitalRequests || []).some(
+    (r) => r.state === "waiting" || r.state === "accepted"
+  );
+  if (stillWaitingOrAccepted || em.hospitalId) {
+    // A hospital accepted or is still being offered — no escalation needed.
+    if (em.status !== STATUS.TO_HOSPITAL) publish(em);
+    return;
+  }
+
+  pushTimeline(em, ROLES.DISPATCH, "hospital-req-expired", "Hospital admission requests expired without acceptance — searching again", { allowDuplicate: true });
+  // Try to re-offer; escalate if nothing responds.
+  const moved = assignHospital(em);
+  if (!moved || !em.hospital) {
+    em.status = STATUS.CONTROL_ROOM_ESCALATION;
+    em.controlRoomEscalation = {
+      triggeredAt: new Date().toISOString(),
+      reason: "No hospital responded to admission requests within the timeout window",
+    };
+    pushTimeline(em, ROLES.DISPATCH, "escalate", "CRITICAL ESCALATION — no hospital has confirmed admission", { allowDuplicate: true });
+    bus.emit("escalation:triggered", { emergencyId: em.emergencyId, emergency: snapshot(em), message: "No hospital confirmed admission within timeout" });
+  }
+  publish(em);
+}
+
 function reporterAccountKey(em) {
   return em.reporter?.username || em.reporter?.name || "unknown";
+}
+
+/* ---- fake-case mitigation: per-account risk scoring ----
+   The score is advisory only — it NEVER blocks or delays a genuine emergency.
+   It is surfaced to the control room as a flag for manual verification. */
+function trackReporter(em) {
+  const key = reporterAccountKey(em);
+  const rec = state.reporterStats.get(key) || { count: 0, cancels: 0, devices: new Set(), lastAt: null };
+  rec.count += 1;
+  rec.lastAt = new Date().toISOString();
+  if (em.reporter?.deviceId) rec.devices.add(em.reporter.deviceId);
+  state.reporterStats.set(key, rec);
+}
+
+function computeRiskScore(em) {
+  const key = reporterAccountKey(em);
+  const rec = state.reporterStats.get(key);
+  if (!rec) return 0;
+  let score = 0;
+
+  // Repeated cancelled cases
+  const cancelHistory = em.cancelHistoryCount || rec.cancels || 0;
+  if (cancelHistory >= FAKE_CANCEL_THRESHOLD) score += 40;
+  else if (cancelHistory >= 1) score += 15;
+
+  // Extremely frequent reports from the same account
+  if (rec.count >= 5) score += 20;
+  else if (rec.count >= 3) score += 10;
+
+  // Very fast consecutive reports (suspicious automation)
+  if (rec.lastAt && Date.now() - new Date(rec.lastAt).getTime() < FAKE_MIN_REPORT_INTERVAL_MS && rec.count > 1) {
+    score += 25;
+  }
+
+  return Math.min(100, score);
 }
 
 function logFalseAlarm(em) {
@@ -1419,6 +1733,10 @@ function logFalseAlarm(em) {
   rec.count += 1;
   rec.lastAt = new Date().toISOString();
   state.falseAlarms.set(key, rec);
+  // cancelled-case history feeds the risk score
+  const r = state.reporterStats.get(key) || { cancels: 0 };
+  r.cancels = (r.cancels || 0) + 1;
+  state.reporterStats.set(key, r);
 }
 
 function pushTimeline(em, role, action, detail, meta, opts = {}) {
@@ -1476,7 +1794,10 @@ function reset() {
   state.autoCancelTimers.clear();
   state.crashTimers.forEach((t) => clearTimeout(t));
   state.crashTimers.clear();
+  state.hospitalTimers.forEach((t) => clearTimeout(t));
+  state.hospitalTimers.clear();
   state.falseAlarms.clear();
+  state.reporterStats.clear();
   state.ambulances.forEach((a) => {
     a.status = "AVAILABLE";
     a.assignedEmergency = null;
@@ -1514,7 +1835,28 @@ function getScoringConfig() {
   return {
     weights: config.WEIGHTS,
     hardConstraints: config.HARD_CONSTRAINTS,
+    timeouts: {
+      hospitalRequestMs: HOSPITAL_REQUEST_MS,
+      acceptanceWindowMs: ACCEPTANCE_WINDOW_MS,
+      cancelHistoryThreshold: FAKE_CANCEL_THRESHOLD,
+      minReportIntervalMs: FAKE_MIN_REPORT_INTERVAL_MS,
+    },
   };
+}
+
+function setHospitalRequestTimeout(ms) {
+  HOSPITAL_REQUEST_MS = Math.max(100, Number(ms) || config.TIMEOUTS.hospitalRequestMs);
+  return HOSPITAL_REQUEST_MS;
+}
+function getHospitalRequestTimeout() {
+  return HOSPITAL_REQUEST_MS;
+}
+function setAcceptanceWindow(ms) {
+  ACCEPTANCE_WINDOW_MS = Math.max(50, Number(ms) || config.TIMEOUTS.acceptanceWindowMs);
+  return ACCEPTANCE_WINDOW_MS;
+}
+function getAcceptanceWindow() {
+  return ACCEPTANCE_WINDOW_MS;
 }
 
 ambulances.forEach((a) => {
@@ -1539,6 +1881,7 @@ module.exports = {
   listEmergencies,
   getEmergency,
   getRecommendations,
+  listAdmissionRequests,
   listAmbulances,
   listHospitals,
   metrics,
@@ -1547,7 +1890,12 @@ module.exports = {
   getAutoCancelWindow,
   setCrashCountdown,
   getCrashCountdown,
+  setHospitalRequestTimeout,
+  getHospitalRequestTimeout,
+  setAcceptanceWindow,
+  getAcceptanceWindow,
   getScoringConfig,
+  computeRiskScore,
   registerDriver,
   unregisterDriver,
   listDrivers,

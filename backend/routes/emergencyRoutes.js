@@ -4,6 +4,7 @@ const ctrl = require("../controllers/emergencyController");
 
 router.post("/emergencies", ctrl.createEmergency);
 router.get("/emergencies", ctrl.listEmergencies);
+router.get("/emergencies/admission-requests", ctrl.listAdmissionRequests);
 router.get("/emergencies/:id", ctrl.getEmergency);
 router.post("/emergencies/:id/actions", ctrl.applyAction);
 router.post("/emergencies/:id/siren", ctrl.toggleSiren);

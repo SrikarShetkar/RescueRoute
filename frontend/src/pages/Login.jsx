@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuth, ROLE_META, ROLES } from '../context/AuthContext';
 import Icon from '../components/Icon';
 import './Login.css';
@@ -12,10 +13,6 @@ const HOSPITALS = [
   { id: 'HOSP-003', label: 'Gandhi Hospital' },
 ];
 
-/**
- * Each role needs its own questions — an ambulance driver does not register
- * with blood-group allergies, and a hospital does not register a vehicle number.
- */
 const REGISTER_FIELDS = {
   reporter: [
     { key: 'name', label: 'Full name', icon: 'user', ph: 'Your name' },
@@ -52,27 +49,46 @@ const REGISTER_FIELDS = {
 
 const DEMO = [
   ['citizen', 'reporter'],
+  ['citizen1', 'reporter'],
+  ['citizen2', 'reporter'],
+  ['citizen3', 'reporter'],
   ['driver.amb', 'ambulance'],
+  ['ambulance1', 'ambulance'],
+  ['ambulance2', 'ambulance'],
+  ['ambulance3', 'ambulance'],
   ['er.staff', 'hospital'],
+  ['hospital1', 'hospital'],
+  ['hospital2', 'hospital'],
+  ['hospital3', 'hospital'],
   ['control', 'dispatch'],
   ['nearby', 'driver'],
+  ['driver1', 'driver'],
+  ['driver2', 'driver'],
+  ['driver3', 'driver'],
 ];
 
 const Login = () => {
-  const [mode, setMode] = useState('signin'); // signin | register
+  const [mode, setMode] = useState('signin');
   const [role, setRole] = useState('ambulance');
   const [data, setData] = useState({});
   const [showDemo, setShowDemo] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { login, register } = useAuth();
+  const { login, register, googleLogin } = useAuth();
   const navigate = useNavigate();
 
   const set = (key) => (e) => setData((d) => ({ ...d, [key]: e.target.value }));
   const selected = REGISTER_FIELDS[role] || [];
 
-  const goHome = (account) => navigate(ROLE_META[account.role].home || '/', { replace: true });
+  const goHome = (account) => {
+    const home = ROLE_META[account.role]?.home || '/';
+    if (!localStorage.getItem('rr_seen_demo')) {
+      navigate(`/demo?next=${encodeURIComponent(home)}`, { replace: true });
+      return;
+    }
+    navigate(home, { replace: true });
+  };
 
   const handleSignIn = (e) => {
     e.preventDefault();
@@ -84,7 +100,7 @@ const Login = () => {
       setIsSubmitting(false);
       return;
     }
-    if (res.user.role !== role) {
+    if (res.user.role && res.user.role !== role) {
       setError(`That username belongs to the ${ROLE_META[res.user.role].label} role — pick that role instead.`);
       setIsSubmitting(false);
       return;
@@ -113,6 +129,36 @@ const Login = () => {
     goHome(res.user);
   };
 
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setError('');
+    try {
+      // <GoogleLogin> returns an ID token (JWT) in credentialResponse.credential,
+      // which the backend verifies with google-auth-library's verifyIdToken().
+      const idToken = credentialResponse?.credential;
+      if (!idToken) {
+        setError('Google did not return a token. Please try again.');
+        return;
+      }
+      const result = await googleLogin(idToken);
+      if (!result.ok) {
+        setError(result.error || 'Google sign-in failed');
+        return;
+      }
+      if (result.needsRole) {
+        navigate('/select-role', { replace: true });
+        return;
+      }
+      goHome(result.user);
+    } catch (err) {
+      console.error('Google sign-in error:', err);
+      setError('Google sign-in failed. Please try again.');
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError('Google sign-in was cancelled or failed.');
+  };
+
   return (
     <div className="login-page">
       <div className="login-overlay"></div>
@@ -122,6 +168,24 @@ const Login = () => {
             <span className="logo-icon"><Icon name={mode === 'register' ? 'user' : 'sos'} size={30} /></span>
             <h1>{mode === 'register' ? 'Create your role account' : 'Sign in to your role'}</h1>
             <p>Each role gets its own dashboard. Choose who you are to continue.</p>
+          </div>
+
+          {/* Google Sign-In */}
+          <div className="google-signin-section">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              useOneTap={false}
+              shape="rectangular"
+              theme="outline"
+              text="continue_with"
+              size="large"
+              width="100%"
+            />
+          </div>
+
+          <div className="login-divider">
+            <span>or sign in with username</span>
           </div>
 
           {/* mode tabs */}

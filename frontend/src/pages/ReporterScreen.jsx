@@ -14,12 +14,23 @@ import { CrashBanner } from "../components/AlertBanner";
 import GreenCorridorStatus from "../components/GreenCorridorStatus";
 import Icon from "../components/Icon";
 import { formatClock, timeAgo } from "../utils/time";
+import PatientIdentify from "../components/PatientIdentify";
 
 const SEVERITIES = [
   { id: "minor", label: "Minor", hint: "Conscious, able to walk" },
   { id: "moderate", label: "Moderate", hint: "Injured, needs help" },
   { id: "critical", label: "Critical", hint: "Unconscious / severe injuries" },
 ];
+
+// Stable per-device identifier used to rate-limit / flag suspicious reporting.
+function getDeviceId() {
+  let id = localStorage.getItem("rr_device_id");
+  if (!id) {
+    id = "dev-" + Math.random().toString(36).slice(2, 10);
+    localStorage.setItem("rr_device_id", id);
+  }
+  return id;
+}
 
 /**
  * ReporterScreen — the ONE place an emergency starts (self, bystander for an
@@ -41,8 +52,9 @@ export default function ReporterScreen() {
 
 function ReporterFlow() {
   const { user } = useAuth();
-  const [step, setStep] = useState("who"); // who | sos | details | track | crash
+  const [step, setStep] = useState("who"); // who | sos | identify | details | track | crash
   const [who, setWho] = useState("self"); // self | bystander | crash
+  const [identifiedPatient, setIdentifiedPatient] = useState(null);
   const [trackedId, setTrackedId] = useState(localStorage.getItem("rr_tracked"));
   const [emergency, setEmergency] = useState(null);
   const [crashId, setCrashId] = useState(null);
@@ -95,7 +107,7 @@ function ReporterFlow() {
       }
       const res = await api.createEmergency({
         ...payload,
-        reporter: { ...payload.reporter, ...(user?.username ? { username: user.username } : {}) },
+        reporter: { ...payload.reporter, ...(user?.username ? { username: user.username } : {}), deviceId: getDeviceId() },
         location: { lat: location.lat, lng: location.lng, label: location.label },
       });
       return res.emergency.emergencyId;
@@ -207,6 +219,7 @@ function ReporterFlow() {
               onCrash={() => beginCrash(90)}
               onNext={() => {
                 if (who === "crash") beginCrash(90);
+                else if (who === "bystander") setStep("identify");
                 else setStep("details");
               }}
             />
@@ -252,10 +265,21 @@ function ReporterFlow() {
           </section>
         )}
 
+        {step === "identify" && (
+          <PatientIdentify
+            onManualEntry={() => { setIdentifiedPatient(null); setStep("details"); }}
+            onPatientConfirmed={(person) => {
+              setIdentifiedPatient(person);
+              setStep("details");
+            }}
+          />
+        )}
+
         {step === "details" && (
           <DetailsStep
             who={who}
-            onBack={() => setStep("who")}
+            identifiedPatient={identifiedPatient}
+            onBack={() => identifiedPatient ? setStep("identify") : setStep("who")}
             onSubmit={submit}
             submitting={submitting}
             error={error}
@@ -409,11 +433,23 @@ function CrashCheckIn({ submitting, onNo, onYes }) {
   );
 }
 
-function DetailsStep({ who, onBack, onSubmit, submitting, error, getLocation }) {
-  const [patient, setPatient] = useState({ name: "", age: "", bloodGroup: "", allergies: "None", condition: "" });
+function DetailsStep({ who, identifiedPatient, onBack, onSubmit, submitting, error, getLocation }) {
+  const [patient, setPatient] = useState(() => {
+    if (identifiedPatient) {
+      return {
+        name: identifiedPatient.name || "",
+        age: identifiedPatient.age?.toString() || "",
+        bloodGroup: identifiedPatient.bloodGroup || "",
+        allergies: identifiedPatient.allergies || "None",
+        condition: "",
+      };
+    }
+    return { name: "", age: "", bloodGroup: "", allergies: "None", condition: "" };
+  });
   const [reporter, setReporter] = useState({ name: "" });
   const [severity, setSeverity] = useState("moderate");
   const [loc, setLoc] = useState(null);
+  const [confirming, setConfirming] = useState(false);
 
   const set = (k) => (e) => setPatient((p) => ({ ...p, [k]: e.target.value }));
 
@@ -424,8 +460,16 @@ function DetailsStep({ who, onBack, onSubmit, submitting, error, getLocation }) 
 
   return (
     <section>
-      <div className="section-title">{who === "self" ? "Your details" : who === "bystander" ? "Details of the person who needs help" : "Crash check-in details"}</div>
+      <div className="section-title">{who === "self" ? "Your details" : who === "bystander" ? (identifiedPatient ? `Patient: ${identifiedPatient.name}` : "Details of the person who needs help") : "Crash check-in details"}</div>
       <div className="section-sub">This info is sent to the ambulance crew before they arrive.</div>
+
+      {identifiedPatient && (
+        <div className="rr-identified-badge">
+          <span className="rr-identified-icon">✓</span>
+          <span>Patient identified via RescueRoute lookup</span>
+          <DataLabel kind="simulated">AUTO-FILLED</DataLabel>
+        </div>
+      )}
 
       <div className="rr-form card">
         <div className="rr-grid2">
@@ -501,12 +545,32 @@ function DetailsStep({ who, onBack, onSubmit, submitting, error, getLocation }) 
           <button
             className="btn btn-red"
             disabled={submitting}
-            onClick={() => onSubmit(patient, reporter, severity)}
+            onClick={() => setConfirming(true)}
           >
             {submitting ? <><span className="spin" /> Sending…</> : <><Icon name="sos" size={16} /> Send Emergency Alert</>}
           </button>
         </div>
       </div>
+
+      {confirming && (
+        <div className="confirm-mask" onClick={() => setConfirming(false)}>
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-modal-icon"><Icon name="alert" size={40} /></div>
+            <h3>Confirm Emergency</h3>
+            <p className="muted">Are you reporting a real emergency requiring immediate assistance?</p>
+            <div className="rr-actions">
+              <button className="btn btn-ghost" onClick={() => setConfirming(false)}>Cancel</button>
+              <button
+                className="btn btn-red"
+                disabled={submitting}
+                onClick={() => { setConfirming(false); onSubmit(patient, reporter, severity); }}
+              >
+                {submitting ? <><span className="spin" /> Sending…</> : "CONFIRM EMERGENCY"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

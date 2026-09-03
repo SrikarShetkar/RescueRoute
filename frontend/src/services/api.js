@@ -1,12 +1,24 @@
 import { API_URL } from "./config";
 
+function getToken() {
+  try {
+    return localStorage.getItem('res_q_token');
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Tiny fetch wrapper for the v1 API. Returns parsed JSON, throws on network
  * issues, and passes server error codes through so screens can react.
  */
 async function request(path, options = {}) {
+  const token = getToken();
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
   const res = await fetch(`${API_URL}${path}`, {
-    headers: { "Content-Type": "application/json" },
+    headers,
     ...options,
   });
 
@@ -45,6 +57,11 @@ export function listEmergencies({ activeOnly = true, status } = {}) {
 
 export function getEmergency(id) {
   return request(`/emergencies/${encodeURIComponent(id)}`);
+}
+
+/** Emergencies where this hospital currently has a WAITING admission request. */
+export function listAdmissionRequests(hospitalId) {
+  return request(`/emergencies/admission-requests?hospitalId=${encodeURIComponent(hospitalId)}`);
 }
 
 /** Apply a role-gated action to an emergency. The server validates the role
@@ -127,6 +144,7 @@ const api = {
   createEmergency,
   listEmergencies,
   getEmergency,
+  listAdmissionRequests,
   applyAction,
   toggleSiren,
   listAmbulances,

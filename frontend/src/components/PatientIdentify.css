@@ -1,0 +1,117 @@
+.pi-section {
+  max-width: 760px;
+}
+
+.pi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 16px 0;
+}
+
+@media (max-width: 640px) {
+  .pi-grid { grid-template-columns: 1fr; }
+}
+
+.pi-card {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  border-color: #2a2a2a;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.pi-card:hover { border-color: #444; }
+
+.pi-card-icon {
+  color: #6ab0ff;
+  display: inline-flex;
+}
+
+.pi-card strong {
+  font-size: 15px;
+}
+
+.pi-card .muted {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.pi-card-action {
+  margin-top: 8px;
+  align-self: flex-start;
+}
+
+.pi-input-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.pi-input {
+  flex: 1;
+  background: #121212;
+  border: 1px solid #2f2f2f;
+  border-radius: 4px;
+  color: var(--light);
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pi-input::placeholder {
+  text-transform: none;
+  letter-spacing: 0;
+  color: #666;
+}
+
+.pi-input:focus {
+  outline: none;
+  border-color: #0b6fd1;
+}
+
+.pi-error-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #ff4a3d;
+  background: rgba(255, 74, 61, 0.08);
+  color: #ff8b8b;
+  border-radius: 4px;
+  padding: 12px 14px;
+  font-size: 13px;
+  margin-top: 14px;
+}
+
+.pi-error-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 74, 61, 0.2);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.pi-manual-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #222;
+}
+
+.pi-or {
+  font-size: 13px;
+  color: #666;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}

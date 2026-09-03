@@ -81,6 +81,7 @@ export default function ControlRoom() {
   const active = emergencies.filter((e) => !["COMPLETED", "CANCELLED"].includes(e.status));
   const enRouteCount = active.filter((e) => ["AMBULANCE_ACCEPTED", "AT_PATIENT", "TO_HOSPITAL"].includes(e.status)).length;
   const escalations = active.filter((e) => ["CONTROL_ROOM_ESCALATION", "NO_HOSPITAL_AVAILABLE"].includes(e.status));
+  const flaggedCases = active.filter((e) => e.reportFlags && e.reportFlags.length > 0);
 
   const markFalseAlarm = async (e) => {
     try {
@@ -213,6 +214,20 @@ export default function ControlRoom() {
               ))}
             </div>
 
+            <div className="section-title" style={{ fontSize: 18, marginTop: 22 }}>Suspicious cases</div>
+            {flaggedCases.length === 0 && <p className="muted" style={{ marginTop: 6 }}>No flagged reports.</p>}
+            <div className="cr-flags">
+              {flaggedCases.map((e) => (
+                <button key={e.emergencyId} className="cr-flag" onClick={() => setSelected(e)}>
+                  <span>{e.emergencyId}</span>
+                  <span className="muted" style={{ fontSize: 12 }}>
+                    risk {e.riskScore ?? 0} · {(e.reportFlags || []).join(", ")}
+                  </span>
+                  <Icon name="alert" size={13} />
+                </button>
+              ))}
+            </div>
+
             <div className="section-title" style={{ fontSize: 18, marginTop: 22 }}>Signals on corridor</div>
             <div className="cr-signals">
               {CORRIDOR_SIGNALS.map((s, i) => (
@@ -275,6 +290,26 @@ export default function ControlRoom() {
                   <div className="cr-detail-corridor">
                     <span className="rr-label">Green corridor</span>
                     <span><span className="cr-green-dot" /> ACTIVE — {selected.greenCorridor.notifiedUsers} users notified → {selected.greenCorridor.destination}</span>
+                  </div>
+                )}
+                {(selected.hospitalRequests || []).length > 0 && (
+                  <div className="cr-requests">
+                    <span className="rr-label">Hospital admission requests</span>
+                    {selected.hospitalRequests.map((r) => (
+                      <div key={r.hospitalId} className={`cr-request req-${r.state || "waiting"}`}>
+                        <span className="mono">{r.hospitalId}</span>
+                        <span className="cr-request-state">{r.state || "waiting"}</span>
+                        <span className="muted" style={{ fontSize: 11 }}>
+                          {r.score != null ? `score ${r.score}` : ""}
+                          {r.respondedAt && <> · {formatClock(r.respondedAt)}</>}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {(selected.reportFlags || []).length > 0 && (
+                  <div className="cr-flag-summary">
+                    <Icon name="alert" size={13} /> Risk {selected.riskScore ?? 0} — {(selected.reportFlags || []).join(", ")}
                   </div>
                 )}
                 {!["COMPLETED", "CANCELLED"].includes(selected.status) && (

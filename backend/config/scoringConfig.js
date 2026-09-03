@@ -75,6 +75,25 @@ const CRASH_DETECTION = {
   minConfidenceToTrigger: 50,
 };
 
+/**
+ * TIMEOUTS — all waiting/confirmation windows are centralised here so they can
+ * be tuned for a demo without hunting through the codebase.
+ */
+const TIMEOUTS = {
+  // How long a pending (WAITING) hospital admission request stays open before
+  // it is expired and the search re-routes / escalates.
+  hospitalRequestMs: 60000,
+  // How long a hospital has, after accepting, to cancel the acceptance before
+  // it is "admission locked" (only control-room override can then reroute).
+  acceptanceWindowMs: 60000,
+  // How many repeated cancelled emergencies before an account is flagged as
+  // suspicious (fake-case mitigation).
+  cancelHistoryThreshold: 3,
+  // Min interval (ms) between emergency creations from the same reporter id to
+  // consider it non-suspicious.
+  minReportIntervalMs: 30000,
+};
+
 function validateWeights() {
   const sum = Object.values(WEIGHTS).reduce((a, b) => a + b, 0);
   if (Math.abs(sum - 1.0) > 0.001) {
@@ -91,4 +110,5 @@ module.exports = {
   SCORING_NORMALIZATION,
   CORRIDOR_CONFIG,
   CRASH_DETECTION,
+  TIMEOUTS,
 };

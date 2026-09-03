@@ -1,0 +1,368 @@
+.prof-body {
+  padding: 24px 0 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Tabs */
+.prof-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #222;
+  padding-bottom: 0;
+}
+
+.prof-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #999;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.prof-tab:hover { color: #ccc; }
+.prof-tab.active {
+  color: #fff;
+  border-bottom-color: #3ef27c;
+}
+
+.prof-save-msg {
+  background: rgba(62, 242, 124, 0.08);
+  border: 1px solid rgba(62, 242, 124, 0.25);
+  border-radius: 4px;
+  padding: 10px 14px;
+  color: #3ef27c;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.prof-section {
+  max-width: 760px;
+}
+
+/* Card */
+.prof-card {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Photo */
+.prof-photo-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.prof-photo {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #0e1a24;
+  border: 2px solid #22303c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.prof-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.prof-photo-placeholder {
+  font-size: 26px;
+  font-weight: 700;
+  color: #6ab0ff;
+}
+
+.prof-photo-label {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.prof-photo-hint {
+  font-size: 12px;
+}
+
+/* Fields */
+.prof-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 540px) {
+  .prof-grid { grid-template-columns: 1fr; }
+}
+
+.prof-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.prof-full {
+  grid-column: 1 / -1;
+}
+
+.prof-field-label {
+  font: 600 10px/1.3 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9fb0bf;
+}
+
+.prof-field input,
+.prof-field select {
+  background: #121212;
+  border: 1px solid #2f2f2f;
+  border-radius: 4px;
+  color: var(--light);
+  padding: 10px 12px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  width: 100%;
+}
+
+.prof-field select { appearance: none; }
+.prof-field input:focus,
+.prof-field select:focus {
+  outline: none;
+  border-color: #0b6fd1;
+}
+
+.prof-vehicle-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.prof-vehicle-tag {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: #0e1a24;
+  border: 1px solid #22303c;
+  border-radius: 3px;
+  padding: 4px 10px;
+  color: #7cc4ff;
+}
+
+/* Vehicles */
+.prof-vehicles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.prof-vehicle-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.prof-vehicle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.prof-vehicle-num {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #fff;
+  margin-right: 8px;
+}
+
+.prof-owner-badge {
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(62, 242, 124, 0.1);
+  color: #3ef27c;
+  border: 1px solid rgba(62, 242, 124, 0.25);
+  border-radius: 3px;
+  padding: 3px 8px;
+}
+
+.prof-vehicle-people {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prof-people-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prof-person-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #101820;
+  border: 1px solid #22303c;
+  border-radius: 4px;
+}
+
+.prof-person-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #0e1a24;
+  border: 1px solid #22303c;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #6ab0ff;
+  flex-shrink: 0;
+}
+
+.prof-person-avatar.sm {
+  width: 24px;
+  height: 24px;
+  font-size: 11px;
+}
+
+.prof-person-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.prof-person-info strong {
+  font-size: 14px;
+}
+
+.prof-person-info .muted {
+  font-size: 12px;
+}
+
+/* Vehicle QR preview */
+.prof-vehicle-qr {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prof-qr-preview {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.prof-qr-hint {
+  font-size: 12px;
+  max-width: 180px;
+}
+
+/* Add vehicle */
+.prof-add-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.prof-add-input {
+  flex: 1;
+  background: #121212;
+  border: 1px solid #2f2f2f;
+  border-radius: 4px;
+  color: var(--light);
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.prof-add-input:focus {
+  outline: none;
+  border-color: #0b6fd1;
+}
+
+/* QR Main Card */
+.prof-qr-main-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 30px 24px;
+  text-align: center;
+}
+
+.prof-qr-main {
+  background: #0a0a0a;
+  border: 1px solid #222;
+  border-radius: 8px;
+  padding: 20px;
+  display: inline-flex;
+}
+
+.prof-qr-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 400px;
+  text-align: left;
+}
+
+.prof-qr-vehicle {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prof-qr-people {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.prof-qr-person {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.prof-qr-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #9a9a9a;
+  background: #0e1a24;
+  border: 1px solid #22303c;
+  border-radius: 4px;
+  padding: 10px 14px;
+  text-align: left;
+  max-width: 500px;
+}
+
+.prof-qr-note svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #7cc4ff;
+}

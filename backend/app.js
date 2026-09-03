@@ -9,6 +9,7 @@ const vehicleRoutes = require("./routes/vehicleRoutes");
 const familyEmergencyRoutes = require("./routes/familyEmergencyRoutes");
 const authRoutes = require("./routes/authRoutes");
 const emergencyRoutes = require("./routes/emergencyRoutes");
+const patientRoutes = require("./routes/patientRoutes");
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use("/api/traffic", trafficRoutes);
 app.use("/api/vehicles", vehicleRoutes);
 app.use("/api/family-emergency", familyEmergencyRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/patient", patientRoutes);
 
 // Unified v1 API (single source of truth for emergencies)
 app.use("/api/v1", emergencyRoutes);
@@ -40,6 +42,7 @@ app.get("/", (req, res) => {
       vehicles: "/api/vehicles",
       familyEmergency: "/api/family-emergency",
       auth: "/api/auth",
+      patient: "/api/patient",
     },
   });
 });

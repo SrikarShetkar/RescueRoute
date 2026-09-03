@@ -174,3 +174,30 @@
 .cat-dispatch { color: #c792ea; border-color: #5b3a80; }
 .cat-system { color: #9aa4b1; border-color: #333c46; }
 .cat-crash { color: #ff6a5e; border-color: #7a2622; }
+
+.cr-flags { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.cr-flag {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  width: 100%; text-align: left; background: #1c1406;
+  border: 1px solid #5c4a1f; color: var(--light);
+  padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 13px;
+}
+.cr-flag span:first-child { font-family: var(--font-mono); }
+.cr-flag .muted { font-size: 12px; }
+.cr-requests { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.cr-request {
+  display: flex; align-items: center; gap: 10px;
+  background: #111; border: 1px solid #2b2b2b; border-radius: 5px;
+  padding: 6px 10px; font-size: 13px;
+}
+.cr-request-state { font-size: 11px; text-transform: uppercase; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+.req-waiting { color: #7db4ff; }
+.req-accepted { color: #4ade80; }
+.req-rejected { color: #ff6b6b; }
+.req-expired { color: #ffb800; }
+.req-cancelled { color: #9a9a9a; }
+.cr-flag-summary {
+  margin-top: 12px; display: flex; align-items: center; gap: 8px;
+  color: #ffb800; font-size: 13px; background: #1c1406;
+  border: 1px solid #5c4a1f; border-radius: 6px; padding: 8px 12px;
+}

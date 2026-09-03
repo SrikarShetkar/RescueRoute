@@ -29,7 +29,11 @@ function expectError(fn, code) {
   assert.equal(threw.code, code, `expected code ${code}, got ${threw.message}`);
 }
 
-test.beforeEach(() => engine.reset());
+test.beforeEach(() => {
+  engine.reset();
+  engine.setAcceptanceWindow(60000);
+  engine.setHospitalRequestTimeout(60000);
+});
 
 test("a new emergency is offered to the nearest available ambulance", () => {
   const em = engine.getEmergency(makeEmergency().emergencyId);
@@ -87,6 +91,8 @@ test("full happy path completes in order", () => {
   const hospId = em.hospitalId;
 
   em = engine.applyAction(id, "accept-patient", { role: ROLES.HOSPITAL, hospitalId: hospId });
+  assert.equal(em.status, STATUS.HOSPITAL_ACCEPTED);
+  em = engine.applyAction(id, "navigate", { role: ROLES.AMBULANCE, ambulanceId: ambId, hospitalId: hospId });
   assert.equal(em.status, STATUS.TO_HOSPITAL);
 
   em = engine.applyAction(id, "arrived-hospital", { role: ROLES.AMBULANCE, ambulanceId: ambId });
@@ -187,6 +193,7 @@ test("completed emergencies free the ambulance", () => {
   engine.applyAction(id, "at-patient", { role: ROLES.AMBULANCE, ambulanceId: ambId });
   const afterPickup = engine.applyAction(id, "pickup", { role: ROLES.AMBULANCE, ambulanceId: ambId });
   engine.applyAction(id, "accept-patient", { role: ROLES.HOSPITAL, hospitalId: afterPickup.hospitalId });
+  engine.applyAction(id, "navigate", { role: ROLES.AMBULANCE, ambulanceId: ambId, hospitalId: afterPickup.hospitalId });
   engine.applyAction(id, "arrived-hospital", { role: ROLES.AMBULANCE, ambulanceId: ambId });
   engine.applyAction(id, "handover", { role: ROLES.DISPATCH });
 
@@ -314,17 +321,21 @@ test("a conditional accept is recorded with its limitation and activates the cor
   engine.applyAction(id, "at-patient", { role: ROLES.AMBULANCE, ambulanceId: ambId });
   const pickup = engine.applyAction(id, "pickup", { role: ROLES.AMBULANCE, ambulanceId: ambId });
 
-  const em = engine.applyAction(id, "conditional-accept", {
+  const em0 = engine.applyAction(id, "conditional-accept", {
     role: ROLES.HOSPITAL,
     hospitalId: pickup.hospitalId,
     conditions: "Emergency bed available but specialist arriving in 10 minutes",
   });
 
+  assert.equal(em0.status, STATUS.HOSPITAL_ACCEPTED);
+  const reqBefore = em0.hospitalRequests[em0.hospitalRequests.length - 1];
+  assert.equal(reqBefore.response, "conditional-accept");
+  assert.ok(reqBefore.conditions.includes("specialist arriving in 10 minutes"));
+
+  // Corridor activates only when the DRIVER starts navigation.
+  const em = engine.applyAction(id, "navigate", { role: ROLES.AMBULANCE, ambulanceId: ambId, hospitalId: pickup.hospitalId });
   assert.equal(em.status, STATUS.TO_HOSPITAL);
-  const req = em.hospitalRequests[em.hospitalRequests.length - 1];
-  assert.equal(req.response, "conditional-accept");
-  assert.ok(req.conditions.includes("specialist arriving in 10 minutes"));
-  assert.ok(em.greenCorridor && em.greenCorridor.active, "corridor should activate after acceptance");
+  assert.ok(em.greenCorridor && em.greenCorridor.active, "corridor should activate after driver starts navigation");
   assert.ok(em.greenCorridor.notificationStatus === "SENT");
 });
 
@@ -479,6 +490,7 @@ test("handover keeps the case LIVE; discharge + reporter rating close it", () =>
   let em = engine.applyAction(id, "pickup", { role: ROLES.AMBULANCE, ambulanceId: ambId });
   const hospId = em.hospitalId;
   engine.applyAction(id, "accept-patient", { role: ROLES.HOSPITAL, hospitalId: hospId });
+  engine.applyAction(id, "navigate", { role: ROLES.AMBULANCE, ambulanceId: ambId, hospitalId: hospId });
   engine.applyAction(id, "arrived-hospital", { role: ROLES.AMBULANCE, ambulanceId: ambId });
 
   // Handover → IN_TREATMENT: NOT closed. It is still listed as active and the
@@ -510,4 +522,146 @@ test("handover keeps the case LIVE; discharge + reporter rating close it", () =>
   assert.equal(em.hospitalRating.score, 4);
   assert.equal(em.hospitalRating.ratedBy, "reporter");
   assert.ok(em.hospitalRating.ratedAt);
+});
+
+test("parallel hospital requests wait, multiple hospitals can accept, driver picks via navigate", () => {
+  const created = makeEmergency();
+  const id = created.emergencyId;
+  const ambId = created.ambulanceId;
+
+  engine.applyAction(id, "accept", { role: ROLES.AMBULANCE, ambulanceId: ambId });
+  engine.applyAction(id, "at-patient", { role: ROLES.AMBULANCE, ambulanceId: ambId });
+  let em = engine.applyAction(id, "pickup", { role: ROLES.AMBULANCE, ambulanceId: ambId });
+
+  // Send parallel admission requests to top hospitals.
+  em = engine.applyAction(id, "send-hospital-requests", { role: ROLES.AMBULANCE, ambulanceId: ambId });
+  const requests = em.hospitalRequests;
+  assert.ok(requests.length >= 2, "should send requests to 2+ hospitals");
+  assert.ok(requests.every((r) => r.state === "waiting"), "all requests should be WAITING");
+  assert.ok(em.hospitalId, "a tentative destination should be set while waiting");
+
+  const [hA, hB] = [requests[0].hospitalId, requests[1].hospitalId];
+
+  // Two different hospitals accept → both stay 'accepted' (multi-accept, not first-wins).
+  em = engine.applyAction(id, "accept-patient", { role: ROLES.HOSPITAL, hospitalId: hA });
+  assert.equal(em.status, STATUS.HOSPITAL_ACCEPTED, "case waits for the driver to acknowledge");
+  assert.equal(em.hospitalId, null, "destination not locked until the driver navigates");
+  assert.ok(em.acceptanceWindowUntil, "acceptance opens a 60s confirmation window");
+  assert.equal(em.admissionLocked, false);
+
+  em = engine.applyAction(id, "accept-patient", { role: ROLES.HOSPITAL, hospitalId: hB });
+  const acceptedNow = em.hospitalRequests.filter((r) => r.state === "accepted");
+  assert.equal(acceptedNow.length, 2, "both hospitals may stay accepted at the same time");
+  assert.ok(
+    em.hospitalRequests.every((r) => r.state === "accepted" || r.state === "waiting"),
+    "accepting one hospital must not cancel the other while waiting"
+  );
+
+  // Driver cannot navigate to a hospital that did NOT accept.
+  const nonAccepted = em.hospitalRequests.find((r) => r.state === "waiting");
+  if (nonAccepted) {
+    expectError(
+      () => engine.applyAction(id, "navigate", { role: ROLES.AMBULANCE, ambulanceId: ambId, hospitalId: nonAccepted.hospitalId }),
+      "FORBIDDEN"
+    );
+  }
+
+  // Driver acknowledges hA and starts navigation → that hospital becomes destination.
+  em = engine.applyAction(id, "navigate", { role: ROLES.AMBULANCE, ambulanceId: ambId, hospitalId: hA });
+  assert.equal(em.status, STATUS.TO_HOSPITAL);
+  assert.equal(em.hospitalId, hA, "navigated hospital becomes the destination");
+  assert.equal(em.driverStarted, true, "driver-started flag set");
+  assert.equal(em.admissionLocked, true, "admission locks once the driver starts");
+  const cancelledOthers = em.hospitalRequests.filter((r) => r.hospitalId !== hA && r.state === "accepted");
+  assert.equal(cancelledOthers.length, 0, "non-chosen accepts are cancelled after navigate");
+});
+
+test("hospital can cancel its acceptance within the 60s window, then reroute", () => {
+  const created = makeEmergency();
+  const id = created.emergencyId;
+  const ambId = created.ambulanceId;
+  engine.applyAction(id, "accept", { role: ROLES.AMBULANCE, ambulanceId: ambId });
+  engine.applyAction(id, "at-patient", { role: ROLES.AMBULANCE, ambulanceId: ambId });
+  let em = engine.applyAction(id, "pickup", { role: ROLES.AMBULANCE, ambulanceId: ambId });
+  const acceptedHosp = em.hospitalId;
+  engine.applyAction(id, "accept-patient", { role: ROLES.HOSPITAL, hospitalId: acceptedHosp });
+  em = engine.applyAction(id, "cancel-accept", { role: ROLES.HOSPITAL, hospitalId: acceptedHosp });
+  // Reroutes to next-best hospital; case never ends.
+  assert.notEqual(em.status, STATUS.COMPLETED);
+  assert.notEqual(em.status, STATUS.CANCELLED);
+  assert.ok(em.hospitalId && em.hospitalId !== acceptedHosp || em.status === STATUS.CONTROL_ROOM_ESCALATION,
+    "should reroute to another hospital or escalate");
+});
+
+test("hospital cannot cancel after the acceptance window has locked (control-room override only)", async () => {
+  engine.setAcceptanceWindow(60);
+  const created = makeEmergency();
+  const id = created.emergencyId;
+  const ambId = created.ambulanceId;
+  engine.applyAction(id, "accept", { role: ROLES.AMBULANCE, ambulanceId: ambId });
+  engine.applyAction(id, "at-patient", { role: ROLES.AMBULANCE, ambulanceId: ambId });
+  let em = engine.applyAction(id, "pickup", { role: ROLES.AMBULANCE, ambulanceId: ambId });
+  const hospId = em.hospitalId;
+  em = engine.applyAction(id, "accept-patient", { role: ROLES.HOSPITAL, hospitalId: hospId });
+  assert.equal(em.admissionLocked, false);
+
+  // Wait for the 60ms window to expire → admission is effectively locked.
+  await new Promise((resolve) => setTimeout(resolve, 120));
+  expectError(
+    () => engine.applyAction(id, "cancel-accept", { role: ROLES.HOSPITAL, hospitalId: hospId }),
+    "INVALID_STATE"
+  );
+  // Control-room override still works (escalate then pick a different hospital).
+  em = engine.applyAction(id, "escalate", { role: ROLES.DISPATCH });
+  assert.equal(em.status, STATUS.CONTROL_ROOM_ESCALATION);
+  em = engine.applyAction(id, "dispatch-override", { role: ROLES.DISPATCH, hospitalId: "HOSP-002" });
+  assert.equal(em.status, STATUS.HOSPITAL_OFFERED);
+  engine.setAcceptanceWindow(60000);
+});
+
+test("confirm-patient-received transitions to IN_TREATMENT and frees the ambulance", () => {
+  const created = makeEmergency();
+  const id = created.emergencyId;
+  const ambId = created.ambulanceId;
+  engine.applyAction(id, "accept", { role: ROLES.AMBULANCE, ambulanceId: ambId });
+  engine.applyAction(id, "at-patient", { role: ROLES.AMBULANCE, ambulanceId: ambId });
+  let em = engine.applyAction(id, "pickup", { role: ROLES.AMBULANCE, ambulanceId: ambId });
+  const hospId = em.hospitalId;
+  engine.applyAction(id, "accept-patient", { role: ROLES.HOSPITAL, hospitalId: hospId });
+  engine.applyAction(id, "navigate", { role: ROLES.AMBULANCE, ambulanceId: ambId, hospitalId: hospId });
+  em = engine.applyAction(id, "arrived-hospital", { role: ROLES.AMBULANCE, ambulanceId: ambId });
+  em = engine.applyAction(id, "confirm-patient-received", { role: ROLES.HOSPITAL, hospitalId: hospId });
+  assert.equal(em.status, STATUS.IN_TREATMENT);
+  assert.equal(em.handover, true);
+  assert.equal(engine.listAmbulances().find((a) => a.id === ambId).status, "AVAILABLE");
+});
+
+test("new emergency reuses an ambulance freed after handover", () => {
+  const one = makeEmergency();
+  const id1 = one.emergencyId;
+  const ambId = one.ambulanceId;
+  engine.applyAction(id1, "accept", { role: ROLES.AMBULANCE, ambulanceId: ambId });
+  engine.applyAction(id1, "at-patient", { role: ROLES.AMBULANCE, ambulanceId: ambId });
+  let em = engine.applyAction(id1, "pickup", { role: ROLES.AMBULANCE, ambulanceId: ambId });
+  const hospId = em.hospitalId;
+  engine.applyAction(id1, "accept-patient", { role: ROLES.HOSPITAL, hospitalId: hospId });
+  engine.applyAction(id1, "navigate", { role: ROLES.AMBULANCE, ambulanceId: ambId, hospitalId: hospId });
+  engine.applyAction(id1, "arrived-hospital", { role: ROLES.AMBULANCE, ambulanceId: ambId });
+  engine.applyAction(id1, "confirm-patient-received", { role: ROLES.HOSPITAL, hospitalId: hospId });
+  assert.equal(engine.listAmbulances().find((a) => a.id === ambId).status, "AVAILABLE");
+
+  const two = makeEmergency();
+  assert.equal(two.ambulanceId, ambId, "the freed ambulance should be assigned to a new case");
+});
+
+test("report-risk scoring flags repeated cancellations without blocking emergencies", () => {
+  // Simulate cancellation history for the same reporter account.
+  engine.applyAction(makeEmergency({ reporter: { name: "RepeatCallee", via: "self" } }).emergencyId, "cancel", { role: ROLES.REPORTER });
+  engine.applyAction(makeEmergency({ reporter: { name: "RepeatCallee", via: "self" } }).emergencyId, "cancel", { role: ROLES.REPORTER });
+  engine.applyAction(makeEmergency({ reporter: { name: "RepeatCallee", via: "self" } }).emergencyId, "cancel", { role: ROLES.REPORTER });
+  const flagged = makeEmergency({ reporter: { name: "RepeatCallee", via: "self" } });
+  assert.ok(flagged.emergencyId, "emergency is STILL created despite risk history");
+  const em = engine.getEmergency(flagged.emergencyId);
+  assert.ok(em.reportFlags.length >= 1, "case should carry a risk flag");
+  assert.ok(em.reportFlags.includes("Repeated cancellation history"));
 });

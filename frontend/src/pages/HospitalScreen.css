@@ -78,6 +78,19 @@
 
 .hosp-actions { display: flex; gap: 12px; flex-wrap: wrap; }
 
+.hosp-driver-notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid #3ef27c;
+  background: #3ef27c14;
+  color: #baffd4;
+  border-radius: 4px;
+}
+.hosp-driver-notice strong { display: block; color: #3ef27c; }
+.hosp-driver-notice .muted { font-size: 13px; }
+
 .hosp-side { display: flex; flex-direction: column; }
 
 .hosp-checklist { display: flex; flex-direction: column; gap: 6px; }
@@ -189,3 +202,8 @@
   padding: 8px 10px;
   font-size: 14px;
 }
+
+.amb-call { margin-top: 8px; padding: 6px 12px; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.amb-call-station { margin-top: 0; }
+.hosp-countdown { color: #ffb800; }
+.hosp-countdown strong { font-family: var(--font-mono); }

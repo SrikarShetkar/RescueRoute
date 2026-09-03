@@ -1,0 +1,111 @@
+.ps-section {
+  max-width: 760px;
+}
+
+.ps-vehicle-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #0e1a24;
+  border: 1px solid #22303c;
+  border-radius: 4px;
+  padding: 8px 14px;
+  margin-bottom: 16px;
+}
+
+.ps-vehicle-label {
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6ab0ff;
+}
+
+.ps-vehicle-number {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.06em;
+}
+
+.ps-people-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  margin: 16px 0;
+}
+
+@media (max-width: 540px) {
+  .ps-people-grid { grid-template-columns: 1fr; }
+}
+
+.ps-person-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 20px 16px;
+}
+
+.ps-person-photo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #0e1a24;
+  border: 2px solid #22303c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ps-person-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ps-photo-placeholder {
+  font-size: 28px;
+  font-weight: 700;
+  color: #6ab0ff;
+}
+
+.ps-person-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ps-person-name {
+  font-size: 16px;
+}
+
+.ps-person-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: #999;
+}
+
+.ps-allergy-tag {
+  font-size: 11px;
+  color: #ffc24b;
+  background: rgba(255, 194, 75, 0.1);
+  border: 1px solid rgba(255, 194, 75, 0.2);
+  border-radius: 3px;
+  padding: 3px 8px;
+  margin-top: 4px;
+}
+
+.ps-select-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.ps-empty {
+  padding: 30px;
+  text-align: center;
+}

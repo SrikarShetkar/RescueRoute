@@ -30,6 +30,41 @@
 
 .amb-body { padding: 32px 0 60px; display: flex; flex-direction: column; gap: 26px; }
 
+.amb-available-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, #12271a, #0d1d14);
+  border: 1px solid #1f5c33;
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+.amb-available-banner strong { color: #4ade80; font-size: 16px; }
+.amb-available-banner .muted { display: block; margin-top: 3px; font-size: 13px; }
+.amb-available-dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #4ade80; box-shadow: 0 0 12px #4ade80;
+  animation: amb-pulse 1.6s infinite;
+  flex: none;
+}
+@keyframes amb-pulse { 0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5); } 70% { box-shadow: 0 0 0 12px rgba(74, 222, 128, 0); } 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); } }
+
+.amb-treatment-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #17243a, #101a2c);
+  border: 1px solid #2c4a78;
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  color: #7db4ff;
+}
+.amb-treatment-banner strong { display: block; color: #8fc3ff; font-size: 15px; }
+.amb-treatment-banner .muted { font-size: 13px; }
+.amb-treatment-banner b { color: #4ade80; }
+.amb-call { margin-top: 8px; padding: 6px 12px; font-size: 12px; text-decoration: none; }
+
 .amb-offers { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-top: 14px; }
 .amb-offer { display: flex; flex-direction: column; gap: 10px; }
 .amb-offer-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }

@@ -1,46 +1,75 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5001";
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 /**
- * Register a new user
+ * Auth API client. Communicates with /api/auth/* endpoints.
+ * All methods return the parsed JSON response body.
  */
-export async function registerUser(data) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-        });
 
-        return await response.json();
+function authHeaders(token) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return headers;
+}
+
+export async function googleAuth(idToken, role) {
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/auth/google`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken, role })
+        });
+        return await res.json();
     } catch (error) {
-        console.error("Registration API error:", error);
+        console.error('Google auth API error:', error);
         return { success: false, message: error.message };
     }
 }
 
-/**
- * Login user
- */
+export async function assignRole(token, role) {
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/auth/assign-role`, {
+            method: 'POST',
+            headers: authHeaders(token),
+            body: JSON.stringify({ role })
+        });
+        return await res.json();
+    } catch (error) {
+        console.error('Assign role API error:', error);
+        return { success: false, message: error.message };
+    }
+}
+
+export async function registerUser(data) {
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        return await res.json();
+    } catch (error) {
+        console.error('Registration API error:', error);
+        return { success: false, message: error.message };
+    }
+}
+
 export async function loginUser(credentials) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(credentials),
+        const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(credentials)
         });
-
-        return await response.json();
+        return await res.json();
     } catch (error) {
-        console.error("Login API error:", error);
+        console.error('Login API error:', error);
         return { success: false, message: error.message };
     }
 }
 
 const authApi = {
+    googleAuth,
+    assignRole,
     registerUser,
     loginUser
 };

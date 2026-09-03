@@ -43,6 +43,8 @@ export default function HospitalRecommendations({
   onRequest,
   requestingId,
   lastRejectionDetail,
+  hospitalRequests = [],
+  onNavigate,
 }) {
   if (!recommendations || recommendations.length === 0) return null;
 
@@ -70,16 +72,21 @@ export default function HospitalRecommendations({
 
       {eligible.length > 0 ? (
         <div className="rec-list">
-          {eligible.map((r) => (
-            <EligibleCard
-              key={r.hospital.id}
-              r={r}
-              rank={r.rank}
-              active={r.hospital.id === currentHospitalId}
-              requesting={requestingId === r.hospital.id}
-              onRequest={onRequest}
-            />
-          ))}
+          {eligible.map((r) => {
+            const req = hospitalRequests.find((x) => x.hospitalId === r.hospital.id);
+            return (
+              <EligibleCard
+                key={r.hospital.id}
+                r={r}
+                rank={r.rank}
+                active={r.hospital.id === currentHospitalId}
+                requesting={requestingId === r.hospital.id}
+                onRequest={onRequest}
+                req={req}
+                onNavigate={onNavigate}
+              />
+            );
+          })}
         </div>
       ) : (
         <div className="rec-none">
@@ -103,15 +110,18 @@ export default function HospitalRecommendations({
   );
 }
 
-function EligibleCard({ r, rank, active, requesting, onRequest }) {
+function EligibleCard({ r, rank, active, requesting, onRequest, req, onNavigate }) {
   const load = loadLabel(r.hospital.currentLoad);
+  const isAccepted = req?.state === "accepted";
+  const isWaiting = req?.state === "waiting" || req?.state === "pending";
   return (
-    <div className={`rec-card ${active ? "active" : ""}`}>
+    <div className={`rec-card ${active ? "active" : ""} ${isAccepted ? "accepted" : ""}`}>
       <div className="rec-card-top">
         <span className={`rec-rank ${rank === 1 ? "top" : ""}`}>#{rank}</span>
         <div className="rec-name-row">
           <h3>{r.hospital.name}</h3>
-          {active && <span className="rec-active-tag">Currently offered</span>}
+          {isAccepted && <span className="rec-active-tag">✓ Accepted — awaiting you</span>}
+          {!isAccepted && active && <span className="rec-active-tag">Currently offered</span>}
         </div>
         <div className="rec-score">
           <strong>{r.score}</strong>
@@ -153,21 +163,34 @@ function EligibleCard({ r, rank, active, requesting, onRequest }) {
       </div>
 
       <div className="rec-actions">
-        <button
-          className={`btn ${active ? "btn-green" : "btn-blue"}`}
-          onClick={() => onRequest && onRequest(r.hospital.id)}
-          disabled={requesting}
-        >
-          {requesting ? (
-            <><span className="spin" /> Requesting…</>
-          ) : active ? (
-            "✓ Confirm admission"
-          ) : (
-            "Request Admission"
-          )}
-        </button>
-        {!onRequest && active && (
-          <span className="rec-locked-note muted">Waiting for hospital to accept…</span>
+        {isAccepted ? (
+          <button
+            className="btn btn-green"
+            onClick={() => onNavigate && onNavigate(r.hospital.id)}
+            disabled={!onNavigate}
+          >
+            <Icon name="map" size={13} /> Navigate → Start travel
+          </button>
+        ) : isWaiting ? (
+          <>
+            <button className="btn btn-blue" disabled>
+              <span className="spin" /> Waiting for hospital to accept…
+            </button>
+          </>
+        ) : (
+          <button
+            className={`btn ${active ? "btn-green" : "btn-blue"}`}
+            onClick={() => onRequest && onRequest(r.hospital.id)}
+            disabled={requesting}
+          >
+            {requesting ? (
+              <><span className="spin" /> Requesting…</>
+            ) : active ? (
+              "✓ Confirm admission"
+            ) : (
+              "Request Admission"
+            )}
+          </button>
         )}
       </div>
     </div>

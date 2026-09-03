@@ -1,0 +1,118 @@
+.pc-section {
+  max-width: 520px;
+}
+
+.pc-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.pc-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 30px 24px;
+  text-align: center;
+}
+
+.pc-photo {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #0e1a24;
+  border: 3px solid #22303c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pc-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pc-photo-placeholder {
+  font-size: 36px;
+  font-weight: 700;
+  color: #6ab0ff;
+}
+
+.pc-name {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.pc-details-grid {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.pc-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pc-detail-label {
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #666;
+}
+
+.pc-detail-value {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.pc-blood {
+  color: #ff6b6b;
+}
+
+.pc-section-block {
+  width: 100%;
+  text-align: left;
+  background: #101820;
+  border: 1px solid #22303c;
+  border-radius: 4px;
+  padding: 12px 14px;
+}
+
+.pc-section-label {
+  font: 600 10px/1.3 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6ab0ff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.pc-section-text {
+  font-size: 14px;
+  color: #ccc;
+  line-height: 1.4;
+}
+
+.pc-vehicle {
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.pc-actions {
+  width: 100%;
+  justify-content: space-between;
+  margin-top: 8px;
+}

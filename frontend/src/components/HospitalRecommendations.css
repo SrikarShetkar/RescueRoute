@@ -25,6 +25,7 @@
   gap: 12px;
 }
 .rec-card.active { border-color: #3ef27c; box-shadow: 0 0 0 1px #3ef27c33; }
+.rec-card.accepted { border-color: #3ef27c; box-shadow: 0 0 0 1px #3ef27c66, 0 0 20px #3ef27c22; }
 
 .rec-card-top { display: flex; align-items: center; gap: 12px; }
 .rec-rank {
