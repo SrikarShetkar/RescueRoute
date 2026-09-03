@@ -1,0 +1,15 @@
+{
+  "short_name": "RescueRoute",
+  "name": "RescueRoute - Emergency Response System",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#FF0000",
+  "background_color": "#ffffff"
+}

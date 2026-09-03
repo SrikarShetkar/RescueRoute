@@ -65,6 +65,8 @@ dist
 # Gatsby files
 .cache/
 public
+!frontend/public/
+!frontend/public/*
 
 # Serverless directories
 .serverless/
