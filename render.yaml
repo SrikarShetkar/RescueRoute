@@ -7,7 +7,7 @@ services:
     staticPublishPath: ./build
     envVars:
       - key: REACT_APP_API_URL
-        sync: false
+        value: https://sih-internal-c8v8.onrender.com
       - key: REACT_APP_GOOGLE_CLIENT_ID
         sync: false
       - key: REACT_APP_GEMINI_API_KEY
