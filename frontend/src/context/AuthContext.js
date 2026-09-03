@@ -8,7 +8,7 @@ export const useAuth = () => useContext(AuthContext);
 export const ROLES = ['reporter', 'ambulance', 'hospital', 'dispatch', 'driver'];
 
 export const ROLE_META = {
-  reporter: { label: 'Citizen / Reporter', home: '/report', screen: 'Report & Track', icon: 'sos' },
+  reporter: { label: 'Citizen / Reporter', home: '/citizen', screen: 'Citizen', icon: 'sos' },
   ambulance: { label: 'Ambulance Driver', home: '/ambulance', screen: 'Ambulance', icon: 'ambulance' },
   hospital: { label: 'Hospital ER Staff', home: '/hospital', screen: 'Hospital', icon: 'hospital' },
   dispatch: { label: 'Control Room Dispatcher', home: '/control-room', screen: 'Control Room', icon: 'console' },

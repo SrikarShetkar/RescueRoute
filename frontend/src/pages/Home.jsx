@@ -116,7 +116,7 @@ const TRIGGERS = [
 ];
 
 const USERS = [
-  { role: "Citizen", cred: "citizen", desk: "/report" },
+  { role: "Citizen", cred: "citizen", desk: "/citizen" },
   { role: "Ambulance", cred: "driver.amb", desk: "/ambulance" },
   { role: "Hospital", cred: "er.staff", desk: "/hospital" },
   { role: "Control Room", cred: "control", desk: "/control-room" },
@@ -1045,7 +1045,7 @@ export default function Home() {
               <div className="rr-account" style={{ borderTop: "1px solid var(--rr-hairline)" }}>
                 <span className="role">Routes</span>
                 <span className="cred">
-                  <Link to="/report" style={{ color: "var(--rr-green)", textDecoration: "none" }}>/report</Link> ·{" "}
+                  <Link to="/citizen" style={{ color: "var(--rr-green)", textDecoration: "none" }}>/citizen</Link> ·{" "}
                   <Link to="/ambulance" style={{ color: "var(--rr-green)", textDecoration: "none" }}>/ambulance</Link> ·{" "}
                   <Link to="/hospital" style={{ color: "var(--rr-green)", textDecoration: "none" }}>/hospital</Link> ·{" "}
                   <Link to="/control-room" style={{ color: "var(--rr-green)", textDecoration: "none" }}>/control-room</Link> ·{" "}

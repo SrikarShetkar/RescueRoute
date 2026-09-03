@@ -5,7 +5,7 @@ import Icon from "./Icon";
 import "./Navbar.css";
 
 const ALL_LINKS = [
-  { path: "/report", label: "Report & Track", role: "reporter" },
+  { path: "/citizen", label: "Citizen", role: "reporter" },
   { path: "/ambulance", label: "Ambulance", role: "ambulance" },
   { path: "/hospital", label: "Hospital", role: "hospital" },
   { path: "/control-room", label: "Control Room", role: "dispatch" },

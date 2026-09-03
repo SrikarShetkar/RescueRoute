@@ -9,6 +9,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import SelectRole from './pages/SelectRole';
 import ReporterScreen from './pages/ReporterScreen';
+import Citizen from './pages/Citizen';
 import AmbulanceScreen from './pages/AmbulanceScreen';
 import HospitalScreen from './pages/HospitalScreen';
 import ControlRoom from './pages/ControlRoom';
@@ -32,6 +33,7 @@ function App() {
               <Route path="/demo" element={<Demo />} />
 
               {/* Role-based access — each dashboard is locked to one role. */}
+              <Route path="/citizen" element={<ProtectedRoute role="reporter"><Citizen /></ProtectedRoute>} />
               <Route path="/report" element={<ProtectedRoute role="reporter"><ReporterScreen /></ProtectedRoute>} />
               <Route path="/report/:eid" element={<ProtectedRoute role="reporter"><ReporterScreen /></ProtectedRoute>} />
               <Route path="/ambulance" element={<ProtectedRoute role="ambulance"><AmbulanceScreen /></ProtectedRoute>} />

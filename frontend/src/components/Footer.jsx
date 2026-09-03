@@ -21,7 +21,7 @@ const Footer = () => {
           <div className="footer-col">
             <h4>Roles</h4>
             <ul>
-              <li><Link to="/report">Report &amp; Track</Link></li>
+              <li><Link to="/citizen">Citizen</Link></li>
               <li><Link to="/ambulance">Ambulance Driver</Link></li>
               <li><Link to="/hospital">Hospital ER</Link></li>
             </ul>
