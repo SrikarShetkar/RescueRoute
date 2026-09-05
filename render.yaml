@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: rescueroute-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && CI=true npm run build
+    staticPublishPath: ./build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://sih-internal-c8v8.onrender.com
+      - key: REACT_APP_GOOGLE_CLIENT_ID
+        sync: false
+      - key: REACT_APP_GEMINI_API_KEY
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
